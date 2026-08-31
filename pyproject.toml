@@ -15,6 +15,9 @@ dependencies = [
 data = [
   "datasets>=2.19.0",
 ]
+rag = [
+  "tree-sitter-language-pack",
+]
 sft = [
   "huggingface_hub>=0.23.0",
   "transformers>=4.40.0",

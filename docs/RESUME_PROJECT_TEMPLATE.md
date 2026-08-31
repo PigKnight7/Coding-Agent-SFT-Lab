@@ -10,7 +10,8 @@
 
 ## 简历 Bullet 版本
 
-- 参考 Claude Code / Aider / OpenHands 的公开架构，设计并实现轻量级 Coding Agent，支持仓库索引、代码检索、任务规划、工具调用、测试执行、Review Subagent 和 JSONL trace 记录。
+- 参考 Claude Code / Aider / OpenHands 的公开架构，设计并实现轻量级 Coding Agent，支持仓库检索、任务规划、工具调用、测试执行、Review Subagent 和 JSONL trace 记录。
+- 构建面向代码仓库的 Hybrid RAG：采用 AST/tree-sitter 结构化切分，融合 Dense Embedding 与 BM25 召回，通过 RRF 和代码感知 reranker 排序，并实现增量向量索引、Git/依赖图加权及 Recall@K、MRR 评估。
 - 构建 Agent 后训练数据流水线，将 Agent traces、MBPP/HumanEval 代码任务、SWE-bench Lite 修复计划统一转换为 LLaMA-Factory alpaca 格式，形成 687 条训练样本和 37 条验证样本。
 - 基于 Qwen3-8B 使用 LoRA 进行 1 epoch SFT，仅训练 21.8M 参数（0.27%），跑通从模型下载、训练、checkpoint 保存到推理评估的完整闭环。
 - 设计 base/SFT 对比评估脚本，从 JSON 合法率、字段命中率、ROUGE-L、工具选择准确率、文件命中率等维度量化微调效果；实验中 JSON 合法率从 0.0% 提升到 94.6%，工具选择准确率从 0.0% 提升到 83.3%。
@@ -24,7 +25,7 @@
 
 **Action**：
 
-1. 实现仓库索引、轻量检索、工具调用、Hook 安全检查、Review Subagent 和 trace 记录。
+1. 实现 Hybrid RAG 仓库检索、工具调用、Hook 安全检查、Review Subagent 和 trace 记录。
 2. 将 Agent traces、MBPP/HumanEval 和 SWE-bench Lite plan 数据整理成 SFT 样本。
 3. 使用 LLaMA-Factory 基于 Qwen3-8B 进行 LoRA SFT。
 4. 编写评估脚本，对比 base model 与 SFT model 的 JSON 合法性、字段命中、工具选择准确率和 ROUGE-L。
@@ -34,7 +35,7 @@
 ## 面试讲解思路
 
 1. **为什么做这个项目**：Code Agent 的核心不只是代码生成，而是可控工具调用、可验证执行和轨迹数据闭环。
-2. **系统怎么设计**：LangGraph 编排多阶段节点，Tool Registry 管理工具，Hook System 限制风险，Trace 用于后训练数据。
+2. **系统怎么设计**：LangGraph 编排多阶段节点，Hybrid RAG 提供代码上下文，Tool Registry 管理工具，Hook System 限制风险，Trace 用于后训练数据。
 3. **数据怎么来**：MBPP/HumanEval 提供函数级任务，SWE-bench Lite 提供真实 issue，Agent traces 提供工具调用行为。
 4. **训练怎么做**：LLaMA-Factory + Qwen3-8B + LoRA，先做 1 epoch smoke test，验证格式学习能力。
 5. **结果怎么看**：指标提升很大，但主要反映格式对齐；真实修复能力还需要 patch 执行和端到端评估。

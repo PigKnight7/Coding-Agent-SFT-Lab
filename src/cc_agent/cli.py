@@ -17,6 +17,7 @@ from cc_agent.data_builder import (
 )
 from cc_agent.graph import run_agent
 from cc_agent.repo_indexer import RepoIndexer
+from cc_agent.retrieval_eval import evaluate_retrieval_dataset
 from cc_agent.task_runner import run_task_manifest
 from cc_agent.trace_stats import compute_trace_stats
 
@@ -28,7 +29,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 @app.command()
 def index(
     repo: Path = typer.Option(..., "--repo", "-r", help="Target repository path."),
-    query: str | None = typer.Option(None, "--query", "-q", help="Optional task query for lightweight retrieval."),
+    query: str | None = typer.Option(None, "--query", "-q", help="Optional task query for hybrid retrieval."),
 ) -> None:
     """Preview repository context without calling an LLM."""
     snapshot = RepoIndexer(repo).snapshot(query=query)
@@ -42,10 +43,19 @@ def index(
 def retrieve(
     repo: Path = typer.Option(..., "--repo", "-r", help="Target repository path."),
     query: str = typer.Option(..., "--query", "-q", help="Search query."),
-    top_k: int = typer.Option(5, "--top-k", help="Number of retrieved files."),
+    top_k: int = typer.Option(5, "--top-k", help="Number of retrieved code chunks."),
+    path: str | None = typer.Option(None, "--path", help="Optional repository path filter."),
+    language: str | None = typer.Option(None, "--language", help="Optional language filter."),
+    symbol: str | None = typer.Option(None, "--symbol", help="Optional symbol-name filter."),
 ) -> None:
-    """Run dependency-free lexical retrieval over the repository."""
-    result = RepoIndexer(repo).retrieve(query=query, top_k=top_k)
+    """Run hybrid BM25 and dense retrieval over the repository index."""
+    result = RepoIndexer(repo).retrieve(
+        query=query,
+        top_k=top_k,
+        path_filter=path,
+        language_filter=language,
+        symbol_filter=symbol,
+    )
     console.print(Panel(result, title="Retrieved Context"))
 
 
@@ -71,6 +81,17 @@ def stats(
     """Summarize JSONL traces into simple benchmark-style metrics."""
     trace_stats = compute_trace_stats(path)
     console.print(Panel(trace_stats.render(), title="Trace Stats"))
+
+
+@app.command("eval-retrieval")
+def eval_retrieval(
+    dataset: Path = typer.Option(..., "--dataset", "-d", help="Retrieval evaluation JSONL."),
+    ks: str = typer.Option("1,3,5", "--ks", help="Comma-separated K values."),
+) -> None:
+    """Evaluate repository retrieval with Recall@K, HitRate@K, and MRR."""
+    parsed_ks = tuple(int(value.strip()) for value in ks.split(",") if value.strip())
+    metrics = evaluate_retrieval_dataset(dataset, ks=parsed_ks)
+    console.print(Panel(metrics.render(), title="Retrieval Evaluation"))
 
 
 @app.command("build-mbpp")

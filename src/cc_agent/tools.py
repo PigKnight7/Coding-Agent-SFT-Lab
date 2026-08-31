@@ -48,8 +48,10 @@ Available tools:
 - list_files {"path": "."}: list repository files under path.
 - read_file {"path": "relative/path.py"}: read a text file.
 - grep {"pattern": "regex", "path": "."}: search text files with a regex.
-- retrieve_context {"query": "bug or symbol name", "top_k": 5}: retrieve relevant code snippets with a lightweight lexical index.
-- replace_in_file {"path": "relative/path.py", "old": "exact old text", "new": "replacement text"}: make a focused exact replacement.
+- retrieve_context {"query": "bug or symbol name", "top_k": 5, "path": "optional/path",
+  "language": "python", "symbol": "optional_symbol"}: hybrid BM25 + dense retrieval with metadata filters.
+- replace_in_file {"path": "relative/path.py", "old": "exact old text", "new": "replacement text"}:
+  make a focused exact replacement.
 - write_file {"path": "relative/path.py", "content": "full new file content"}: overwrite a file safely.
 - run_tests {"command": "pytest -q"}: run an allowlisted test command.
 - git_diff {}: show git diff if available, otherwise a best-effort status.
@@ -123,7 +125,13 @@ Available tools:
         top_k = int(arguments.get("top_k", 5))
         if not query.strip():
             return ToolResult(False, "retrieve_context requires a non-empty query")
-        output = RepoIndexer(self.repo_root).retrieve(query=query, top_k=top_k)
+        output = RepoIndexer(self.repo_root).retrieve(
+            query=query,
+            top_k=top_k,
+            path_filter=str(arguments.get("path", "")) or None,
+            language_filter=str(arguments.get("language", "")) or None,
+            symbol_filter=str(arguments.get("symbol", "")) or None,
+        )
         return ToolResult(True, output)
 
     def _replace_in_file(self, arguments: dict[str, Any]) -> ToolResult:

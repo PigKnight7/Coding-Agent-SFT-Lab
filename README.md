@@ -13,7 +13,7 @@
 
 ## 项目亮点
 
-- 支持代码仓库索引、Python AST 符号提取和轻量词法检索。
+- 支持 AST/tree-sitter 代码切分、增量向量索引、BM25 + Dense 混合检索及代码感知 rerank。
 - 使用 LangGraph 编排 Planner → Tool Execution → Verifier → Review → Summary 流程。
 - 通过 Tool Registry 统一封装 `read_file`、`grep`、`replace_in_file`、`write_file`、`run_tests`、`git_diff` 等工具。
 - 内置 Hook 安全边界，阻止越权路径、危险命令和敏感文件修改。
@@ -44,7 +44,9 @@ flowchart TD
 
 | 模块 | 文件 | 作用 |
 | --- | --- | --- |
-| Repo Indexer | `src/cc_agent/repo_indexer.py` | 扫描仓库、读取规则、提取 Python 符号、构建检索上下文 |
+| RAG | `src/cc_agent/rag.py` | 结构化切分、增量索引、Hybrid 召回、rerank、依赖图与上下文组装 |
+| Retrieval Eval | `src/cc_agent/retrieval_eval.py` | 计算 Recall@K、HitRate@K 和 MRR |
+| Repo Indexer | `src/cc_agent/repo_indexer.py` | 扫描仓库、读取规则、提取 Python 符号、组装检索上下文 |
 | Planner / Actor / Reviewer | `src/cc_agent/graph.py` | LangGraph 工作流编排 |
 | Tool Registry | `src/cc_agent/tools.py` | 文件、搜索、编辑、测试、diff 工具封装 |
 | Hook System | `src/cc_agent/hooks.py` | 路径、安全命令、敏感文件保护 |
@@ -87,6 +89,14 @@ conda activate coding_agent_sft
 pip install -r requirements.txt
 ```
 
+如需对 JavaScript、TypeScript、Java、Go、Rust、C/C++、Ruby 使用 tree-sitter 结构化切分：
+
+```bash
+pip install -e ".[rag]"
+```
+
+未安装该可选依赖时会自动回退到滑动窗口切分，不影响 Python AST 切分和 Agent 运行。
+
 如果在当前实验环境中复现，也可以使用已有环境：
 
 ```bash
@@ -107,9 +117,30 @@ OPENAI_API_KEY=sk-your-api-key
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_TEMPERATURE=0.1
+
+CC_AGENT_RETRIEVAL_MODE=hybrid
+RAG_EMBEDDING_PROVIDER=openai
+RAG_EMBEDDING_MODEL=text-embedding-3-small
+RAG_CONTEXT_MAX_TOKENS=2000
+RAG_RERANKER=heuristic
+RAG_GIT_CHANGE_BOOST=0.02
 ```
 
 `OPENAI_BASE_URL` 可以替换为任何 OpenAI-compatible API 服务地址。
+
+Hybrid RAG 默认复用 `OPENAI_API_KEY` 和 `OPENAI_BASE_URL`。如果聊天与 Embedding 使用不同服务，单独设置
+`RAG_EMBEDDING_API_KEY` 和 `RAG_EMBEDDING_BASE_URL`。首次检索会为目标仓库生成 Embedding，并将向量索引保存到
+`~/.cache/cc-agent/rag`；仓库内容和切分配置未变化时会直接复用索引。
+
+查询时会分别执行 Chunk 级 BM25 和 Dense 语义召回，再通过 Reciprocal Rank Fusion 合并排名。代码标识符会额外
+加权，最终上下文按照近似 token 预算进行重叠去重和截断。`retrieve` 命令及 Agent 的 `retrieve_context` 工具支持
+`path`、`language` 和 `symbol` 元数据过滤。
+
+索引更新采用 Chunk ID 级增量策略：仓库变化后只重新生成新增或修改 Chunk 的 Embedding。RRF 候选随后经过独立
+代码感知 reranker，根据查询词覆盖度、Git 工作区变更以及 Python import 直接依赖关系调整顺序。
+
+如果当前 OpenAI-compatible 服务不支持 Embedding API，可临时设置
+`CC_AGENT_RETRIEVAL_MODE=lexical` 使用旧的词法检索。
 
 ---
 
@@ -121,10 +152,20 @@ OPENAI_TEMPERATURE=0.1
 python run_agent.py index --repo examples/sample_repo --query "subtract bug"
 ```
 
-### 2. 单独运行检索
+### 2. 单独运行 Hybrid RAG 检索
 
 ```bash
 python run_agent.py retrieve --repo examples/sample_repo --query "subtract function" --top-k 3
+```
+
+可选的过滤示例：
+
+```bash
+python run_agent.py retrieve \
+  --repo examples/sample_repo \
+  --query "calculator bug" \
+  --language python \
+  --symbol subtract
 ```
 
 ### 3. 运行完整 Agent
@@ -138,7 +179,19 @@ python run_agent.py run \
 
 每次完整运行会在 `traces/` 目录生成 JSONL 轨迹。轨迹包含计划、工具调用、工具结果、Review 结论和最终总结，可用于后续 SFT。
 
-### 4. 查看 trace 统计
+### 4. 评估 RAG 检索质量
+
+仓库提供了一个最小 JSONL 检索集，可计算 Recall@K、HitRate@K 和 MRR：
+
+```bash
+python run_agent.py eval-retrieval \
+  --dataset examples/retrieval_eval.jsonl \
+  --ks 1,3,5
+```
+
+每条样本包含 `repo`、`query`、`relevant_paths`，并可选提供 `relevant_symbols`。真实实验应继续扩充查询和人工相关性标注。
+
+### 5. 查看 trace 统计
 
 ```bash
 python run_agent.py stats --path traces
@@ -336,8 +389,8 @@ python scripts/eval_before_after_sft.py \
 
 ## 后续扩展
 
-- 引入 tree-sitter 支持更多语言的符号级索引。
-- 用 embedding / rerank 替换当前轻量词法检索。
+- 扩充人工标注的检索评估集，并对 Dense、BM25、Hybrid、rerank 做消融实验。
+- 可选接入 Cross-Encoder reranker，与当前轻量代码感知 reranker 对比。
 - 扩充高质量真实 Agent traces，减少模板化过拟合。
 - 将 patch 样本纳入评估，增加真实测试执行指标。
 - 基于工具合法性、测试通过率和 diff 风险设计 RLVR / GRPO / GSPO 后训练实验。

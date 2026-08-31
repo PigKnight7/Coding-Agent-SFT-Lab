@@ -1,0 +1,2 @@
+{"id":"find_subtract","repo":"sample_repo","query":"find the function that computes the difference between two numbers","relevant_paths":["calculator.py"],"relevant_symbols":["subtract"]}
+{"id":"find_add","repo":"sample_repo","query":"where is integer addition implemented","relevant_paths":["calculator.py"],"relevant_symbols":["add"]}
