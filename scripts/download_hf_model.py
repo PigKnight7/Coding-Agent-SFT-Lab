@@ -1,3 +1,4 @@
+"""Legacy generic downloader; it is not part of the recommended Qwen3.5-2B workflow."""
 from __future__ import annotations
 
 import argparse

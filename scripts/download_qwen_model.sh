@@ -3,7 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-CONDA_ENV="${CONDA_ENV:-liuyang_aihigh}"
+# Legacy Qwen3-8B downloader. The Qwen3.5-2B runbook expects MODEL_PATH to be prepared externally.
+CONDA_ENV="${CONDA_ENV:-coding_agent_sft}"
 MODEL_ID="${MODEL_ID:-Qwen/Qwen3-8B}"
 LOCAL_DIR="${LOCAL_DIR:-models/Qwen3-8B}"
 HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"

@@ -1,0 +1,6 @@
+# Versions verified against LLaMA-Factory v0.9.5's declared compatibility range.
+# Install a CUDA-enabled PyTorch build appropriate for the 4090D host separately.
+llamafactory==0.9.5
+transformers==5.5.0
+peft==0.18.1
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONDA_ENV="${CONDA_ENV:-liuyang_aihigh}"
+CONDA_ENV="${CONDA_ENV:-coding_agent_sft}"
 
 conda run --no-capture-output -n "${CONDA_ENV}" python - <<'PY'
 import torch

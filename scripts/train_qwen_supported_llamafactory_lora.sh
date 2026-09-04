@@ -3,6 +3,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Legacy Qwen3-8B entrypoint retained for reproducibility. Use TRAINING_RUNBOOK.md for Qwen3.5-2B.
+CONDA_ENV="${CONDA_ENV:-coding_agent_sft}"
+
 export HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"
 export HF_HUB_ETAG_TIMEOUT="${HF_HUB_ETAG_TIMEOUT:-60}"
 export HF_HUB_DOWNLOAD_TIMEOUT="${HF_HUB_DOWNLOAD_TIMEOUT:-600}"
@@ -22,9 +25,9 @@ fi
 OUTPUT_DIR="${OUTPUT_DIR:-outputs/qwen_supported_coding_agent_lora_llamafactory}"
 DATASET_DIR="${DATASET_DIR:-data/llamafactory}"
 
-conda run --no-capture-output -n liuyang_aihigh python scripts/prepare_llamafactory_sft.py
+conda run --no-capture-output -n "${CONDA_ENV}" python scripts/prepare_llamafactory_sft.py
 
-conda run --no-capture-output -n liuyang_aihigh llamafactory-cli train \
+conda run --no-capture-output -n "${CONDA_ENV}" llamafactory-cli train \
   --stage sft \
   --do_train true \
   --model_name_or_path "${MODEL_ID}" \

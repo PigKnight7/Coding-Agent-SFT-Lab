@@ -63,6 +63,7 @@ def build_mbpp(output_dir: str | Path, limit: int = 50, split: str = "test") -> 
                 path="solution.py",
                 content=code + "\n",
                 reason="Use the reference solution to implement the requested function.",
+                metadata={"id": task_record["id"], "source": "MBPP"},
             )
             tasks_file.write(json.dumps(task_record, ensure_ascii=False) + "\n")
             sft_file.write(json.dumps(sft_record, ensure_ascii=False) + "\n")
@@ -92,7 +93,7 @@ def build_humaneval(output_dir: str | Path, limit: int = 50, split: str = "test"
 
             repo_path = repo_dir / task_id
             skeleton = prompt.rstrip() + "\n    pass\n"
-            solution = prompt.rstrip() + canonical_solution.rstrip() + "\n"
+            solution = prompt.rstrip() + "\n" + canonical_solution.rstrip() + "\n"
             test_content = (
                 f"from solution import {entry_point}\n\n"
                 f"{test}\n\n"
@@ -115,6 +116,7 @@ def build_humaneval(output_dir: str | Path, limit: int = 50, split: str = "test"
                 path="solution.py",
                 content=solution,
                 reason="Complete the function according to the prompt and tests.",
+                metadata={"id": task_record["id"], "source": "HumanEval"},
             )
             tasks_file.write(json.dumps(task_record, ensure_ascii=False) + "\n")
             sft_file.write(json.dumps(sft_record, ensure_ascii=False) + "\n")
@@ -169,6 +171,7 @@ def swebench_to_sft(input_path: str | Path, output_path: str | Path, mode: str =
                 continue
             if mode == "plan":
                 sample = {
+                    "task_type": "swebench_plan",
                     "instruction": "根据真实 GitHub issue 描述，制定代码仓库修复计划。",
                     "input": {
                         "repo_name": row.get("repo_name"),
@@ -183,6 +186,7 @@ def swebench_to_sft(input_path: str | Path, output_path: str | Path, mode: str =
                 }
             else:
                 sample = {
+                    "task_type": "swebench_patch",
                     "instruction": "根据真实 GitHub issue 描述生成 unified diff 修复补丁。",
                     "input": {
                         "repo_name": row.get("repo_name"),
@@ -218,6 +222,7 @@ def local_tasks_to_sft(input_path: str | Path, output_path: str | Path) -> int:
             if not row.get("repo") or not row.get("task"):
                 continue
             sample = {
+                "task_type": "tool_strategy",
                 "instruction": "根据本地代码任务，制定并执行最小工具调用策略。",
                 "input": {
                     "repo": row.get("repo"),
@@ -228,7 +233,7 @@ def local_tasks_to_sft(input_path: str | Path, output_path: str | Path) -> int:
                     "strategy": [
                         {"tool": "retrieve_context", "purpose": "定位相关代码和测试"},
                         {"tool": "read_file", "purpose": "读取需要修改的文件"},
-                        {"tool": "replace_in_file 或 write_file", "purpose": "进行最小安全修改"},
+                        {"tool": "replace_in_file", "purpose": "进行最小安全修改"},
                         {"tool": "run_tests", "purpose": "验证修改"},
                     ]
                 },
@@ -260,10 +265,15 @@ def traces_to_sft(trace_path: str | Path, output_path: str | Path) -> int:
                     action = payload.get("action", {})
                     result = payload.get("result", {})
                     if action.get("tool") and action.get("tool") != "finish" and result.get("ok"):
+                        resolved_task = task or recover_task_from_plan(plan)
+                        if not resolved_task:
+                            history.append({"action": action, "result": result})
+                            continue
                         sample = {
+                            "task_type": "tool_call",
                             "instruction": "根据用户任务、计划和已有工具轨迹，选择下一步工具调用。",
                             "input": {
-                                "task": task or "Unknown task; older traces may not include task text.",
+                                "task": resolved_task,
                                 "plan": plan,
                                 "history": history[-6:],
                             },
@@ -334,7 +344,7 @@ def _load_dataset(name: str, split: str):
     except ImportError as exc:
         raise RuntimeError(
             f"The 'datasets' package is required for {name}. Install with conda if pip fails: "
-            "conda install -n liuyang_aihigh -c conda-forge datasets pyarrow"
+            "python -m pip install datasets pyarrow"
         ) from exc
     try:
         return load_dataset(name, split=split)
@@ -425,8 +435,16 @@ def _python_skeleton_from_solution(code: str) -> str:
     return f"{signature}\n    pass\n"
 
 
-def _make_write_file_sft(task: str, repo_context: str, path: str, content: str, reason: str) -> dict[str, Any]:
-    return {
+def _make_write_file_sft(
+    task: str,
+    repo_context: str,
+    path: str,
+    content: str,
+    reason: str,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    record = {
+        "task_type": "tool_call",
         "instruction": "根据用户任务和仓库上下文，选择下一步工具调用。",
         "input": {
             "task": task,
@@ -442,6 +460,24 @@ def _make_write_file_sft(task: str, repo_context: str, path: str, content: str, 
             "reason": reason,
         },
     }
+    if metadata:
+        record["metadata"] = metadata
+    return record
+
+
+def recover_task_from_plan(plan: str) -> str | None:
+    """Conservatively recover a missing legacy trace task from its recorded plan."""
+    if not plan.strip():
+        return None
+    # Keep the heuristic intentionally narrow: require both a Python file and a
+    # backticked identifier that is mentioned as a function in the trace plan.
+    python_files = re.findall(r"`([^`\n]+\.py)`", plan)
+    identifiers = re.findall(r"`([A-Za-z_]\w*)`", plan)
+    ignored = {"pytest", "python", "true", "false", "pass"}
+    symbols = [value for value in identifiers if value.lower() not in ignored]
+    if not python_files or not symbols:
+        return None
+    return f"检查并修复 {python_files[0]} 中的 {symbols[0]} 函数，并运行测试验证。"
 
 
 def _patch_to_plan_hint(patch: str) -> str:

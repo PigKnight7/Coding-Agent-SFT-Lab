@@ -12,6 +12,10 @@ venv/
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+credentials.json
+token.json
 
 # Runtime artifacts
 traces/
@@ -23,10 +27,20 @@ train.log
 models/
 .cache/
 outputs/
+artifacts/
+adapters/
+checkpoints/
+checkpoint-*/
+eval_results/
+wandb/
+runs/
+experiment_manifest.json
 *.safetensors
 *.bin
 *.pt
 *.pth
+*.ckpt
+*.tar.gz
 
 # Generated batch results
 data/tasks/*_run_results.jsonl

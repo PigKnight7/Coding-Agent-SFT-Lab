@@ -18,5 +18,25 @@
       "response": "output",
       "system": "system"
     }
+  },
+  "coding_agent_test": {
+    "file_name": "test_alpaca.json",
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output",
+      "system": "system"
+    }
+  },
+  "coding_agent_smoke": {
+    "file_name": "smoke_alpaca.json",
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output",
+      "system": "system"
+    }
   }
 }

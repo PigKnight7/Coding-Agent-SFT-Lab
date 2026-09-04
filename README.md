@@ -1,11 +1,11 @@
 # Coding Agent SFT Lab
 
-一个面向简历项目和后训练实验的轻量级 **Code Repository Agent + Qwen3-8B LoRA SFT** 项目。
+一个面向简历项目和后训练实验的轻量级 **Code Repository Agent + Qwen3.5-2B LoRA SFT** 项目。
 
 项目包含两部分：
 
 1. **Code Agent 原型**：参考 Claude Code / Aider / OpenHands 的公开思路，实现仓库扫描、检索、规划、工具调用、测试验证、Review Subagent 和 JSONL trace 记录。
-2. **Agent SFT 实验闭环**：将 Agent 工具轨迹、MBPP/HumanEval、SWE-bench Lite plan 数据转换为 LLaMA-Factory 训练格式，并基于 Qwen3-8B 做 LoRA SFT，对比微调前后效果。
+2. **Agent SFT 实验闭环**：将 Agent 工具轨迹、MBPP/HumanEval、SWE-bench Lite plan 数据转换为 LLaMA-Factory 训练格式，并基于 Qwen3.5-2B 做 LoRA SFT，对比微调前后效果。
 
 > 说明：本仓库不包含任何私有 API、模型权重、训练 checkpoint 或个人路径。模型权重和训练输出请按文档本地生成。
 
@@ -18,7 +18,7 @@
 - 通过 Tool Registry 统一封装 `read_file`、`grep`、`replace_in_file`、`write_file`、`run_tests`、`git_diff` 等工具。
 - 内置 Hook 安全边界，阻止越权路径、危险命令和敏感文件修改。
 - 每次 Agent 运行可保存 JSONL trace，用于后续 SFT 数据构建。
-- 提供 LLaMA-Factory 数据转换、Qwen3-8B 模型下载、LoRA SFT 和 base/SFT 对比评估脚本。
+- 提供 LLaMA-Factory 数据转换、Qwen3.5-2B LoRA SFT 和 Base/SFT Test 对比评估脚本。
 - 给出完整简历项目写法，展示一个 AI Agent 后训练项目从 0 到 1 的组织方式。
 
 ---
@@ -96,12 +96,6 @@ pip install -e ".[rag]"
 ```
 
 未安装该可选依赖时会自动回退到滑动窗口切分，不影响 Python AST 切分和 Agent 运行。
-
-如果在当前实验环境中复现，也可以使用已有环境：
-
-```bash
-conda run -n liuyang_aihigh pip install -r requirements.txt
-```
 
 配置模型 API：
 
@@ -251,6 +245,23 @@ python run_agent.py swebench-to-sft \
 python run_agent.py traces-to-sft --trace-path traces --output data/sft/agent_traces_sft.jsonl
 ```
 
+### 5. 校验 SFT 数据
+
+新生成的样本使用统一的 `instruction`、`input`、`output` 结构，并显式携带 `task_type`：
+`tool_call`、`tool_strategy`、`swebench_plan` 或 `swebench_patch`。旧数据缺少该字段时仍可按输出结构推断。
+
+校验原始 JSONL 和转换后的 LLaMA-Factory Alpaca 数据：
+
+```bash
+python scripts/validate_sft_data.py --strict
+```
+
+要求所有样本均已迁移为显式协议时：
+
+```bash
+python scripts/validate_sft_data.py --strict --require-explicit-task-type
+```
+
 ---
 
 ## LLaMA-Factory SFT 实验
@@ -261,11 +272,23 @@ python run_agent.py traces-to-sft --trace-path traces --output data/sft/agent_tr
 python scripts/prepare_llamafactory_sft.py
 ```
 
+需要重建并回写五类默认源数据中的可自动修复问题时：
+
+```bash
+python scripts/prepare_llamafactory_sft.py --rewrite-clean-sources
+```
+
+脚本固定使用随机种子 `42`，先精确去重，再按任务 ID、Issue ID 或 Trace 任务来源分组，按
+90%/5%/5% 生成 Train/Validation/Test；同一任务不会跨集合。SWE-bench Patch 默认不参与，只有显式传入
+`--include-patch` 时才会加入。
+
 输出：
 
 ```text
 data/llamafactory/train_alpaca.json
 data/llamafactory/val_alpaca.json
+data/llamafactory/test_alpaca.json
+data/llamafactory/smoke_alpaca.json
 data/llamafactory/dataset_info.json
 data/llamafactory/dataset_stats.json
 ```
@@ -275,10 +298,37 @@ data/llamafactory/dataset_stats.json
 | 数据集 | 数量 |
 | --- | ---: |
 | 总样本 | 724 |
-| 训练集 | 687 |
-| 验证集 | 37 |
+| 训练集 | 652 |
+| 验证集 | 36 |
+| 测试集 | 36 |
+| Smoke（训练集子集） | 32 |
 
-### 2. 安装 LLaMA-Factory
+### Qwen3.5-2B：4090D Smoke 与正式训练
+
+Qwen3.5-2B 使用 LLaMA-Factory `0.9.5` 的 `qwen3_5_nothink` 模板。推荐依赖组合记录在
+`requirements-qwen3_5-sft.txt`；PyTorch 应按 4090D 机器的 CUDA 版本单独安装。两套配置均设置
+`train_on_prompt: false`，只对 assistant 输出计算损失。
+
+本地 CPU 可先运行不加载模型的静态检查：
+
+```bash
+python scripts/check_sft_environment.py \
+  --config configs/qwen3_5_2b_smoke.yaml \
+  --static-only
+```
+
+4090D 上的唯一推荐执行流程、命令顺序和交付文件见 [`TRAINING_RUNBOOK.md`](TRAINING_RUNBOOK.md)。
+
+Smoke 固定读取 32 条 `coding_agent_smoke` 并执行 2 个优化器 Step，输出到
+`outputs/qwen3_5_2b_smoke_lora`；正式训练读取 Train/Validation、训练 1 个 Epoch，输出到
+`outputs/qwen3_5_2b_lora_sft`。启动脚本会拒绝两者使用同一输出目录。
+
+### Legacy：Qwen3-8B 实验路径
+
+以下安装、下载、训练脚本属于早期 Qwen3-8B 实验，仅为兼容和历史追溯保留，**不属于当前推荐流程**。
+它们不得与 Qwen3.5-2B 的 Smoke、正式 Adapter 或 Test 评测结果混用。
+
+#### 安装旧实验依赖
 
 ```bash
 bash scripts/install_llamafactory.sh
@@ -290,7 +340,7 @@ bash scripts/install_llamafactory.sh
 llamafactory-cli --help
 ```
 
-### 3. 下载 Qwen3-8B
+#### 下载 Qwen3-8B（legacy）
 
 ```bash
 bash scripts/download_qwen_model.sh
@@ -308,7 +358,7 @@ models/Qwen3-8B
 LOCAL_DIR=/path/to/models/Qwen3-8B bash scripts/download_qwen_model.sh
 ```
 
-### 4. 启动 LoRA SFT
+#### 启动 Qwen3-8B LoRA SFT（legacy）
 
 ```bash
 LOCAL_MODEL_DIR=models/Qwen3-8B \
@@ -337,18 +387,10 @@ outputs/qwen_supported_coding_agent_lora_llamafactory
 
 ---
 
-## 微调前后评估
+## Legacy Qwen3-8B 历史评估
 
-训练完成后，对比 base model 与 SFT adapter：
-
-```bash
-CUDA_VISIBLE_DEVICES=0,1 \
-python scripts/eval_before_after_sft.py \
-  --base-model models/Qwen3-8B \
-  --adapter-dir outputs/qwen_supported_coding_agent_lora_llamafactory \
-  --device auto \
-  --max-new-tokens 512
-```
+以下指标与结果只描述旧实验，未由当前 Qwen3.5-2B 评测闭环复现，不应作为当前结果引用。
+当前评测命令只收录在 [`TRAINING_RUNBOOK.md`](TRAINING_RUNBOOK.md)。
 
 评估指标：
 
@@ -383,7 +425,7 @@ python scripts/eval_before_after_sft.py \
 
 简历 bullet 示例：
 
-> 构建面向代码仓库任务的轻量级 Coding Agent，支持仓库索引、代码检索、任务规划、工具调用、测试执行、Review Subagent 和 JSONL 轨迹记录；进一步将 Agent traces、MBPP/HumanEval 和 SWE-bench Lite 数据统一转换为 LLaMA-Factory SFT 格式，基于 Qwen3-8B 进行 LoRA SFT，并设计 base/SFT 对比评估脚本。实验中 SFT 后 JSON 合法率从 0.0% 提升到 94.6%，字段命中率从 1.4% 提升到 94.6%，工具选择准确率从 0.0% 提升到 83.3%，验证了 SFT 对 Agent 输出协议对齐的有效性。
+> 构建面向代码仓库任务的轻量级 Coding Agent，支持仓库索引、代码检索、任务规划、工具调用、测试执行、Review Subagent 和 JSONL 轨迹记录；进一步将 Agent traces、MBPP/HumanEval 和 SWE-bench Lite 数据统一为可校验、无任务泄漏的 LLaMA-Factory SFT 数据，建立 Qwen3.5-2B LoRA 的 Smoke、正式训练与 held-out Test Base/SFT 对比评测闭环。真实训练及评测结果需在 4090D 完成后填写。
 
 ---
 
