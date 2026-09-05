@@ -17,7 +17,7 @@ from cc_agent.rl.environment import Environment, SandboxVerifier, hashes, sandbo
 from cc_agent.rl.evaluation import metrics
 from cc_agent.rl.protocol import Action, Observation, Task, Termination, Trajectory, Verification
 from cc_agent.rl.rewards import length_penalty, score
-from cc_agent.rl.rollout import ByteTokenizer, Generation, MockPolicy, rollout, task_prompt
+from cc_agent.rl.rollout import ByteTokenizer, Generation, MockPolicy, normalize_token_ids, rollout, task_prompt
 from cc_agent.rl.training import RolloutBridge, grpo_kwargs, verified_reward
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +73,85 @@ class RLTests(unittest.TestCase):
         self.assertEqual(t.loss_mask[-1], 0)
         self.assertLess(t.model_tokens, len(t.completion_ids))
         self.assertNotIn(t.prompt_ids, [t.completion_ids])
+
+    def test_normalize_token_ids(self):
+        import torch
+        from transformers import BatchEncoding
+
+        for ids in ([1, 2], [[1, 2]], torch.tensor([1, 2]), torch.tensor([[1, 2]])):
+            for value in (ids, {"input_ids": ids}, BatchEncoding({"input_ids": ids})):
+                with self.subTest(value=value):
+                    result = normalize_token_ids(value)
+                    self.assertIs(type(result), list)
+                    self.assertEqual(result, [1, 2])
+                    self.assertTrue(all(type(token) is int for token in result))
+
+        for ids, error, message in (
+            ([], ValueError, "empty"), ([[]], ValueError, "empty"),
+            (torch.tensor([], dtype=torch.long), ValueError, "empty"),
+            (torch.empty((1, 0), dtype=torch.long), ValueError, "empty"),
+            ([[1], [2]], ValueError, "single batch"),
+            (torch.tensor([[1], [2]]), ValueError, "single batch"),
+            ([1.0], TypeError, "integers"), ([True], TypeError, "integers"),
+            (["1"], TypeError, "integers"), ([None], TypeError, "integers"),
+            (torch.tensor([1.0]), TypeError, "integers"),
+            (torch.tensor([True]), TypeError, "integers"),
+            ([[[1]]], TypeError, "integers"), (None, TypeError, "list or Tensor"),
+            (torch.tensor(1), TypeError, "list or Tensor"),
+        ):
+            for value in (ids, {"input_ids": ids}, BatchEncoding({"input_ids": ids})):
+                with self.subTest(value=value), self.assertRaisesRegex(error, message):
+                    normalize_token_ids(value)
+        for value in ({}, {"attention_mask": [1]}, BatchEncoding({"attention_mask": [1]})):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "missing input_ids"):
+                normalize_token_ids(value)
+
+    def test_rollout_real_batch_encoding_multiturn_mask(self):
+        import torch
+        from transformers import BatchEncoding
+
+        for tensors in (False, True):
+            with self.subTest(tensors=tensors):
+                turns, inputs = [], []
+
+                class Processor(ByteTokenizer):
+                    def apply_chat_template(self, messages, **kwargs):
+                        # Only initial prompt and external turns may be tokenized.
+                        self_roles = [message["role"] for message in messages]
+                        if self_roles != (["system", "user"] if not turns else ["user"]):
+                            raise AssertionError("Sampled assistant content was re-tokenized")
+                        ids = [1000 + len(turns), 2000 + len(turns)]
+                        turns.append(ids)
+                        return BatchEncoding({"input_ids": torch.tensor([ids]) if tensors else [ids],
+                                              "attention_mask": [[1, 1]]})
+
+                    def encode(self, text, **kwargs):
+                        raise AssertionError("Generated content must not be re-tokenized")
+
+                class Policy(MockPolicy):
+                    def generate(self, ids, budget):
+                        inputs.append(ids[:])
+                        return super().generate(ids, budget)
+
+                t, _ = rollout(self.task, Policy(self.actions), Processor(), self.config,
+                               verifier=mock_verifier)
+                self.assertIs(type(t.prompt_ids), list)
+                self.assertTrue(all(type(token) is int for token in t.prompt_ids))
+                self.assertEqual(t.prompt_ids, turns[0])
+                self.assertEqual(len(turns), len(self.actions))
+                self.assertEqual(len(inputs), len(self.actions))
+                completion, mask = [], []
+                for index, raw in enumerate(self.actions):
+                    self.assertEqual(inputs[index], t.prompt_ids + completion)
+                    sampled = list(raw.encode())
+                    completion.extend(sampled)
+                    mask.extend([1] * len(sampled))
+                    if index + 1 < len(self.actions):
+                        completion.extend(turns[index + 1])
+                        mask.extend([0] * len(turns[index + 1]))
+                self.assertEqual(t.completion_ids, completion + [Processor.eos_token_id])
+                self.assertEqual(t.loss_mask, mask + [0])
+                self.assertEqual(t.termination, Termination.FINISH)
 
     def test_state_transition_rejects_append_after_close(self):
         t = Trajectory("x")

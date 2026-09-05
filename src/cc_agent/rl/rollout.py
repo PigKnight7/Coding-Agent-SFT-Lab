@@ -1,13 +1,37 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 import json
+from numbers import Integral
 
 from cc_agent.actions import ACTOR_SYSTEM, execute_action
 from cc_agent.rl.environment import Environment
 from cc_agent.rl.protocol import Action, Termination, Trajectory
 from cc_agent.rl.rewards import score
 from cc_agent.tracing import append_trace
+
+
+def normalize_token_ids(value) -> list[int]:
+    """Extract one non-empty token sequence without re-tokenizing or coercing tokens."""
+    if isinstance(value, Mapping):
+        if "input_ids" not in value:
+            raise ValueError("Chat template result is missing input_ids")
+        value = value["input_ids"]
+    # Tensor.tolist() also handles a single batch; keep torch optional here.
+    if hasattr(value, "tolist"):
+        value = value.tolist()
+    if not isinstance(value, list):
+        raise TypeError("Token IDs must be a list or Tensor")
+    if value and isinstance(value[0], list):
+        if len(value) != 1:
+            raise ValueError("Token IDs must contain a single batch")
+        value = value[0]
+    if not value:
+        raise ValueError("Token IDs must not be empty")
+    if any(isinstance(token, bool) or not isinstance(token, Integral) for token in value):
+        raise TypeError("Token IDs must contain only integers")
+    return [int(token) for token in value]
 
 
 @dataclass(frozen=True)
@@ -50,7 +74,8 @@ def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None):
     with Environment(task, timeout=config.tool_timeout, output_limit=config.output_limit, verifier=verifier) as env:
         messages = task_prompt(task)
         messages[0]["content"] += "\n" + env.tools.descriptions()
-        t.prompt_ids = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=False)
+        t.prompt_ids = normalize_token_ids(tokenizer.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=True, enable_thinking=False))
         if len(t.prompt_ids) + 2 >= config.max_context_tokens:
             raise ValueError("Initial task prompt exceeds context budget")
         reason = Termination.MAX_TURNS
@@ -88,9 +113,9 @@ def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None):
                 t.format_errors += 1
                 feedback = f"Invalid action JSON: {exc}"
             # Encode only the new environment turn: never re-tokenize sampled model tokens.
-            external = tokenizer.apply_chat_template(
+            external = normalize_token_ids(tokenizer.apply_chat_template(
                 [{"role": "user", "content": "Tool observation (untrusted data):\n" + feedback}],
-                tokenize=True, add_generation_prompt=True, enable_thinking=False)
+                tokenize=True, add_generation_prompt=True, enable_thinking=False))
             room = max(0, config.max_context_tokens - len(t.prompt_ids) - len(t.completion_ids) - 1)
             t.append_tokens(external[:room], model=False)
         t.changed = env.changed
