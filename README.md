@@ -1,11 +1,22 @@
 # Coding Agent SFT Lab
 
-一个面向简历项目和后训练实验的轻量级 **Code Repository Agent + Qwen3.5-2B LoRA SFT** 项目。
+一个面向简历项目和后训练实验的轻量级 **Code Repository Agent + Qwen3.5-2B LoRA SFT + DAPO-style Agentic RL** 项目。
 
-项目包含两部分：
+项目包含三部分：
 
 1. **Code Agent 原型**：参考 Claude Code / Aider / OpenHands 的公开思路，实现仓库扫描、检索、规划、工具调用、测试验证、Review Subagent 和 JSONL trace 记录。
 2. **Agent SFT 实验闭环**：将 Agent 工具轨迹、MBPP/HumanEval、SWE-bench Lite plan 数据转换为 LLaMA-Factory 训练格式，并基于 Qwen3.5-2B 做 LoRA SFT，对比微调前后效果。
+3. **DAPO 增强型 GRPO**：从正式 SFT Adapter 继续训练共享 Actor，在独立临时仓库中执行多轮工具交互，以环境独立测试和文件完整性计算奖励，统一比较 SFT 与 SFT+DAPO-GRPO。
+
+SFT 后的唯一推荐云端流程、准确命令、奖励权重及恢复方法见 [Agentic RL Runbook](AGENTIC_RL_RUNBOOK.md)。
+顺序为 **正式 SFT Adapter 检查 → RL 环境预检 → GRPO Smoke 及证据检查 → 正式 RL → validation 比较 → 冻结后的最终 test**。
+原有 [SFT Runbook](TRAINING_RUNBOOK.md) 可独立使用；不要求运行 RL。
+
+RL 使用 TRL 公开 DAPO Token-level loss、Clip-Higher 和技术截断过滤，并加入仅统计模型 Token 的柔性长度惩罚。
+没有完整 Dynamic Sampling，不声称完整复现 DAPO。第一版支持单 GPU、保守 Python 函数任务和隔离 pytest；
+不支持任意 SWE 仓库。现有 SFT 数据及 RAG 核心不变，训练/验证/最终测试按 task/group 隔离。
+CPU 验收入口：`bash scripts/final_rl_preflight.sh`（需 pytest）。包含真实隔离 pytest 和无模型 Canary；当前后端为轻量隔离。
+原始测试划分为 518 条公开、364 条隐藏断言；隐藏验证只在轨迹结束后执行。尚无真实 GPU Smoke、GRPO 或模型评测指标。
 
 > 说明：本仓库不包含任何私有 API、模型权重、训练 checkpoint 或个人路径。模型权重和训练输出请按文档本地生成。
 
@@ -48,6 +59,8 @@ flowchart TD
 | Retrieval Eval | `src/cc_agent/retrieval_eval.py` | 计算 Recall@K、HitRate@K 和 MRR |
 | Repo Indexer | `src/cc_agent/repo_indexer.py` | 扫描仓库、读取规则、提取 Python 符号、组装检索上下文 |
 | Planner / Actor / Reviewer | `src/cc_agent/graph.py` | LangGraph 工作流编排 |
+| Shared Actor | `src/cc_agent/actions.py` | 交互式 Graph 与 RL 共用提示词、JSON 动作执行入口 |
+| Agentic RL | `src/cc_agent/rl/` | 协议、隔离环境、多轮 mask、奖励、TRL 接入、manifest、恢复和统一评测 |
 | Tool Registry | `src/cc_agent/tools.py` | 文件、搜索、编辑、测试、diff 工具封装 |
 | Hook System | `src/cc_agent/hooks.py` | 路径、安全命令、敏感文件保护 |
 | Trace | `src/cc_agent/tracing.py` | 保存 JSONL 工具轨迹 |
@@ -61,6 +74,7 @@ flowchart TD
 ```text
 .
 ├── src/cc_agent/                  # Code Agent 核心源码
+│   └── rl/                        # DAPO-style Agentic RL
 ├── scripts/                       # 数据转换、模型下载、训练、评估脚本
 ├── examples/                      # 可运行的小型样例仓库和 benchmark task
 ├── data/
@@ -435,4 +449,4 @@ outputs/qwen_supported_coding_agent_lora_llamafactory
 - 可选接入 Cross-Encoder reranker，与当前轻量代码感知 reranker 对比。
 - 扩充高质量真实 Agent traces，减少模板化过拟合。
 - 将 patch 样本纳入评估，增加真实测试执行指标。
-- 基于工具合法性、测试通过率和 diff 风险设计 RLVR / GRPO / GSPO 后训练实验。
+- 在现有 DAPO-style Agentic RL 上研究 Dynamic Sampling、更广任务沙箱和更多策略优化算法。

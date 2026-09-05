@@ -7,6 +7,7 @@ from typing import Any, Literal
 from langgraph.graph import END, StateGraph
 
 from cc_agent.config import AgentConfig
+from cc_agent.actions import ACTOR_SYSTEM, execute_action
 from cc_agent.json_utils import extract_json_object
 from cc_agent.llm import build_chat_model
 from cc_agent.repo_indexer import RepoIndexer
@@ -18,21 +19,6 @@ from cc_agent.tracing import append_trace, create_trace_file
 PLANNER_SYSTEM = """You are a careful AI coding planner.
 Create a concise implementation plan before tools are used.
 Prefer small, safe, testable edits. Do not invent file contents without inspecting files first.
-"""
-
-ACTOR_SYSTEM = """You are a Claude Code style coding agent.
-You must respond with exactly one JSON object and no markdown.
-Choose one tool call at a time. Inspect files before editing.
-Use retrieve_context or grep to find relevant code before editing.
-Prefer replace_in_file for focused edits. Use write_file only when full-file replacement is safer.
-Run tests after code edits when a test command is available.
-
-JSON schema:
-{
-  "tool": "tool_name",
-  "arguments": {"key": "value"},
-  "reason": "brief reason"
-}
 """
 
 REVIEWER_SYSTEM = """You are a conservative code-review subagent.
@@ -179,7 +165,7 @@ Choose the next single tool call. If complete, call finish.
         if tool_name == "run_tests" and not arguments.get("command"):
             arguments["command"] = state.get("test_command") or "pytest -q"
 
-        result = tools.run(tool_name, arguments)
+        _, result = execute_action(json.dumps({"tool": tool_name, "arguments": arguments}), tools)
         record: ToolRecord = {
             "name": tool_name,
             "arguments": arguments,

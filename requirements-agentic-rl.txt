@@ -1,0 +1,8 @@
+# Separate RL environment; install the host CUDA PyTorch build separately.
+trl==1.12.0
+transformers==5.5.0
+peft==0.18.1
+datasets>=4.7.0,<5
+accelerate>=1.4.0,<2
+PyYAML>=6.0,<7
+pytest>=8.0,<9

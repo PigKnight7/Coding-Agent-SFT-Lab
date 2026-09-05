@@ -1,0 +1,2457 @@
+{
+  "schema_version": 1,
+  "seed": 42,
+  "split_policy": "preserve_sft_holdouts",
+  "excluded": [
+    {
+      "task_id": "HumanEval_32",
+      "reason": "Need at least two independent direct original assertions"
+    },
+    {
+      "task_id": "HumanEval_34",
+      "reason": "Need at least two independent direct original assertions"
+    },
+    {
+      "task_id": "HumanEval_38",
+      "reason": "Need at least two independent direct original assertions"
+    },
+    {
+      "task_id": "HumanEval_44",
+      "reason": "Need at least two independent direct original assertions"
+    },
+    {
+      "task_id": "HumanEval_45",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "HumanEval_50",
+      "reason": "Need at least two independent direct original assertions"
+    },
+    {
+      "task_id": "HumanEval_53",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "HumanEval_56",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "HumanEval_64",
+      "reason": "Only function benchmark tasks are supported"
+    },
+    {
+      "task_id": "mbpp_19",
+      "reason": "Only function benchmark tasks are supported"
+    },
+    {
+      "task_id": "mbpp_37",
+      "reason": "Repeated copies of one assertion cannot form hidden cases"
+    },
+    {
+      "task_id": "astropy__astropy-12907",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "astropy__astropy-14182",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "astropy__astropy-14365",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "astropy__astropy-14995",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "astropy__astropy-6938",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "astropy__astropy-7746",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-10914",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-10924",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11001",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11019",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11039",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11049",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11099",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11133",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11179",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11283",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11422",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11564",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11583",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11620",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11630",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11742",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11797",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11815",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11848",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11905",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11910",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11964",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-11999",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12113",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12125",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12184",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12284",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12286",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12308",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12453",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12470",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12497",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12589",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12700",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12708",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12747",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12856",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12908",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12915",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-12983",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13028",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13033",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13158",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13220",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13230",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13265",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13315",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13321",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13401",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13447",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13448",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13551",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13590",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13658",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13660",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13710",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13757",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13768",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13925",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13933",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-13964",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14016",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14017",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14155",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14238",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14382",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14411",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14534",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14580",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14608",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14667",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14672",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14730",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14752",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14787",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14855",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14915",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14997",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-14999",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15061",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15202",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15213",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15252",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15320",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15347",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15388",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15400",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15498",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15695",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15738",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15781",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15789",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15790",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15814",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15819",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15851",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15902",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-15996",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16041",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16046",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16139",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16229",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16255",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16379",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16400",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16408",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16527",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16595",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16816",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16820",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16873",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-16910",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-17051",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "django__django-17087",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-18869",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-22711",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-22835",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23299",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23314",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23476",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23562",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23563",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23913",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23964",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-23987",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-24149",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-24265",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-24334",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-24970",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25079",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25311",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25332",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25433",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25442",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-25498",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-26011",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "matplotlib__matplotlib-26020",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "mwaskom__seaborn-2848",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "mwaskom__seaborn-3010",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "mwaskom__seaborn-3190",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "mwaskom__seaborn-3407",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pallets__flask-4045",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pallets__flask-4992",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pallets__flask-5063",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-1963",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-2148",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-2317",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-2674",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-3362",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "psf__requests-863",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pydata__xarray-3364",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pydata__xarray-4094",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pydata__xarray-4248",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pydata__xarray-4493",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pydata__xarray-5131",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-5859",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-6506",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-7080",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-7114",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-7228",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pylint-dev__pylint-7993",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-11143",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-11148",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5103",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5221",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5227",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5413",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5495",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-5692",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-6116",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-7168",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-7220",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-7373",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-7432",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-7490",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-8365",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-8906",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "pytest-dev__pytest-9359",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-10297",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-10508",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-10949",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-11040",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-11281",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-12471",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13142",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13241",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13439",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13496",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13497",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13584",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-13779",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-14087",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-14092",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-14894",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-14983",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-15512",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-15535",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-25500",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-25570",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-25638",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "scikit-learn__scikit-learn-25747",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-10325",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-10451",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-11445",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-7686",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-7738",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-7975",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8273",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8282",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8435",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8474",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8506",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8595",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8627",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8713",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8721",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sphinx-doc__sphinx-8801",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-11400",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-11870",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-11897",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-12171",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-12236",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-12419",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-12454",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-12481",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13031",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13043",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13146",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13177",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13437",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13471",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13480",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13647",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13773",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13895",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13915",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-13971",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14024",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14308",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14317",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14396",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14774",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-14817",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15011",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15308",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15345",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15346",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15609",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-15678",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-16106",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-16281",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-16503",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-16792",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-16988",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-17022",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-17139",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-17630",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-17655",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18057",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18087",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18189",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18199",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18532",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18621",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18698",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-18835",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-19007",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-19254",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-19487",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20049",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20154",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20212",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20322",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20442",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20590",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-20639",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21055",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21171",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21379",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21612",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21614",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21627",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-21847",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-22005",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-22714",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-22840",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-23117",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-23191",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-23262",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-24066",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-24102",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-24152",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-24213",
+      "reason": "No executable repository or split identity"
+    },
+    {
+      "task_id": "sympy__sympy-24909",
+      "reason": "No executable repository or split identity"
+    }
+  ],
+  "splits": {
+    "train": "2aabd6f78bc79ed8c3711fb33d17fa5593010239572329119394cf9232979f14",
+    "validation": "e136d86b527a78018365c87379535ca6878af83c1ed8086b0fa8e7949a9144d8",
+    "test": "5b2f2c7ce2020334967351cef443b2a48c3332a035fe03d5c8a12a01c7ccb7cb"
+  },
+  "identities": [
+    {
+      "task_id": "HumanEval_0",
+      "group_id": "benchmark:HumanEval:HumanEval_0",
+      "repo": "data/repos/humaneval/HumanEval_0",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_1",
+      "group_id": "benchmark:HumanEval:HumanEval_1",
+      "repo": "data/repos/humaneval/HumanEval_1",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_10",
+      "group_id": "benchmark:HumanEval:HumanEval_10",
+      "repo": "data/repos/humaneval/HumanEval_10",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_12",
+      "group_id": "benchmark:HumanEval:HumanEval_12",
+      "repo": "data/repos/humaneval/HumanEval_12",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_13",
+      "group_id": "benchmark:HumanEval:HumanEval_13",
+      "repo": "data/repos/humaneval/HumanEval_13",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_14",
+      "group_id": "benchmark:HumanEval:HumanEval_14",
+      "repo": "data/repos/humaneval/HumanEval_14",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_15",
+      "group_id": "benchmark:HumanEval:HumanEval_15",
+      "repo": "data/repos/humaneval/HumanEval_15",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_16",
+      "group_id": "benchmark:HumanEval:HumanEval_16",
+      "repo": "data/repos/humaneval/HumanEval_16",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_17",
+      "group_id": "benchmark:HumanEval:HumanEval_17",
+      "repo": "data/repos/humaneval/HumanEval_17",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_18",
+      "group_id": "benchmark:HumanEval:HumanEval_18",
+      "repo": "data/repos/humaneval/HumanEval_18",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_19",
+      "group_id": "benchmark:HumanEval:HumanEval_19",
+      "repo": "data/repos/humaneval/HumanEval_19",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_21",
+      "group_id": "benchmark:HumanEval:HumanEval_21",
+      "repo": "data/repos/humaneval/HumanEval_21",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_24",
+      "group_id": "benchmark:HumanEval:HumanEval_24",
+      "repo": "data/repos/humaneval/HumanEval_24",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_25",
+      "group_id": "benchmark:HumanEval:HumanEval_25",
+      "repo": "data/repos/humaneval/HumanEval_25",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_26",
+      "group_id": "benchmark:HumanEval:HumanEval_26",
+      "repo": "data/repos/humaneval/HumanEval_26",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_27",
+      "group_id": "benchmark:HumanEval:HumanEval_27",
+      "repo": "data/repos/humaneval/HumanEval_27",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_28",
+      "group_id": "benchmark:HumanEval:HumanEval_28",
+      "repo": "data/repos/humaneval/HumanEval_28",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_29",
+      "group_id": "benchmark:HumanEval:HumanEval_29",
+      "repo": "data/repos/humaneval/HumanEval_29",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_3",
+      "group_id": "benchmark:HumanEval:HumanEval_3",
+      "repo": "data/repos/humaneval/HumanEval_3",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_30",
+      "group_id": "benchmark:HumanEval:HumanEval_30",
+      "repo": "data/repos/humaneval/HumanEval_30",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_31",
+      "group_id": "benchmark:HumanEval:HumanEval_31",
+      "repo": "data/repos/humaneval/HumanEval_31",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_33",
+      "group_id": "benchmark:HumanEval:HumanEval_33",
+      "repo": "data/repos/humaneval/HumanEval_33",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_35",
+      "group_id": "benchmark:HumanEval:HumanEval_35",
+      "repo": "data/repos/humaneval/HumanEval_35",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_36",
+      "group_id": "benchmark:HumanEval:HumanEval_36",
+      "repo": "data/repos/humaneval/HumanEval_36",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_37",
+      "group_id": "benchmark:HumanEval:HumanEval_37",
+      "repo": "data/repos/humaneval/HumanEval_37",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_39",
+      "group_id": "benchmark:HumanEval:HumanEval_39",
+      "repo": "data/repos/humaneval/HumanEval_39",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_4",
+      "group_id": "benchmark:HumanEval:HumanEval_4",
+      "repo": "data/repos/humaneval/HumanEval_4",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_40",
+      "group_id": "benchmark:HumanEval:HumanEval_40",
+      "repo": "data/repos/humaneval/HumanEval_40",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_41",
+      "group_id": "benchmark:HumanEval:HumanEval_41",
+      "repo": "data/repos/humaneval/HumanEval_41",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_42",
+      "group_id": "benchmark:HumanEval:HumanEval_42",
+      "repo": "data/repos/humaneval/HumanEval_42",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_43",
+      "group_id": "benchmark:HumanEval:HumanEval_43",
+      "repo": "data/repos/humaneval/HumanEval_43",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_46",
+      "group_id": "benchmark:HumanEval:HumanEval_46",
+      "repo": "data/repos/humaneval/HumanEval_46",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_47",
+      "group_id": "benchmark:HumanEval:HumanEval_47",
+      "repo": "data/repos/humaneval/HumanEval_47",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_48",
+      "group_id": "benchmark:HumanEval:HumanEval_48",
+      "repo": "data/repos/humaneval/HumanEval_48",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_49",
+      "group_id": "benchmark:HumanEval:HumanEval_49",
+      "repo": "data/repos/humaneval/HumanEval_49",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_51",
+      "group_id": "benchmark:HumanEval:HumanEval_51",
+      "repo": "data/repos/humaneval/HumanEval_51",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_54",
+      "group_id": "benchmark:HumanEval:HumanEval_54",
+      "repo": "data/repos/humaneval/HumanEval_54",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_55",
+      "group_id": "benchmark:HumanEval:HumanEval_55",
+      "repo": "data/repos/humaneval/HumanEval_55",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_57",
+      "group_id": "benchmark:HumanEval:HumanEval_57",
+      "repo": "data/repos/humaneval/HumanEval_57",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_58",
+      "group_id": "benchmark:HumanEval:HumanEval_58",
+      "repo": "data/repos/humaneval/HumanEval_58",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_6",
+      "group_id": "benchmark:HumanEval:HumanEval_6",
+      "repo": "data/repos/humaneval/HumanEval_6",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_60",
+      "group_id": "benchmark:HumanEval:HumanEval_60",
+      "repo": "data/repos/humaneval/HumanEval_60",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_61",
+      "group_id": "benchmark:HumanEval:HumanEval_61",
+      "repo": "data/repos/humaneval/HumanEval_61",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_62",
+      "group_id": "benchmark:HumanEval:HumanEval_62",
+      "repo": "data/repos/humaneval/HumanEval_62",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_65",
+      "group_id": "benchmark:HumanEval:HumanEval_65",
+      "repo": "data/repos/humaneval/HumanEval_65",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_66",
+      "group_id": "benchmark:HumanEval:HumanEval_66",
+      "repo": "data/repos/humaneval/HumanEval_66",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_67",
+      "group_id": "benchmark:HumanEval:HumanEval_67",
+      "repo": "data/repos/humaneval/HumanEval_67",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_68",
+      "group_id": "benchmark:HumanEval:HumanEval_68",
+      "repo": "data/repos/humaneval/HumanEval_68",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_69",
+      "group_id": "benchmark:HumanEval:HumanEval_69",
+      "repo": "data/repos/humaneval/HumanEval_69",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_7",
+      "group_id": "benchmark:HumanEval:HumanEval_7",
+      "repo": "data/repos/humaneval/HumanEval_7",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_70",
+      "group_id": "benchmark:HumanEval:HumanEval_70",
+      "repo": "data/repos/humaneval/HumanEval_70",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_71",
+      "group_id": "benchmark:HumanEval:HumanEval_71",
+      "repo": "data/repos/humaneval/HumanEval_71",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_72",
+      "group_id": "benchmark:HumanEval:HumanEval_72",
+      "repo": "data/repos/humaneval/HumanEval_72",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_73",
+      "group_id": "benchmark:HumanEval:HumanEval_73",
+      "repo": "data/repos/humaneval/HumanEval_73",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_74",
+      "group_id": "benchmark:HumanEval:HumanEval_74",
+      "repo": "data/repos/humaneval/HumanEval_74",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_75",
+      "group_id": "benchmark:HumanEval:HumanEval_75",
+      "repo": "data/repos/humaneval/HumanEval_75",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_77",
+      "group_id": "benchmark:HumanEval:HumanEval_77",
+      "repo": "data/repos/humaneval/HumanEval_77",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_78",
+      "group_id": "benchmark:HumanEval:HumanEval_78",
+      "repo": "data/repos/humaneval/HumanEval_78",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_79",
+      "group_id": "benchmark:HumanEval:HumanEval_79",
+      "repo": "data/repos/humaneval/HumanEval_79",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_8",
+      "group_id": "benchmark:HumanEval:HumanEval_8",
+      "repo": "data/repos/humaneval/HumanEval_8",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_80",
+      "group_id": "benchmark:HumanEval:HumanEval_80",
+      "repo": "data/repos/humaneval/HumanEval_80",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_81",
+      "group_id": "benchmark:HumanEval:HumanEval_81",
+      "repo": "data/repos/humaneval/HumanEval_81",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_82",
+      "group_id": "benchmark:HumanEval:HumanEval_82",
+      "repo": "data/repos/humaneval/HumanEval_82",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_83",
+      "group_id": "benchmark:HumanEval:HumanEval_83",
+      "repo": "data/repos/humaneval/HumanEval_83",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_84",
+      "group_id": "benchmark:HumanEval:HumanEval_84",
+      "repo": "data/repos/humaneval/HumanEval_84",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_85",
+      "group_id": "benchmark:HumanEval:HumanEval_85",
+      "repo": "data/repos/humaneval/HumanEval_85",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_86",
+      "group_id": "benchmark:HumanEval:HumanEval_86",
+      "repo": "data/repos/humaneval/HumanEval_86",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_87",
+      "group_id": "benchmark:HumanEval:HumanEval_87",
+      "repo": "data/repos/humaneval/HumanEval_87",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_88",
+      "group_id": "benchmark:HumanEval:HumanEval_88",
+      "repo": "data/repos/humaneval/HumanEval_88",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_89",
+      "group_id": "benchmark:HumanEval:HumanEval_89",
+      "repo": "data/repos/humaneval/HumanEval_89",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_9",
+      "group_id": "benchmark:HumanEval:HumanEval_9",
+      "repo": "data/repos/humaneval/HumanEval_9",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_90",
+      "group_id": "benchmark:HumanEval:HumanEval_90",
+      "repo": "data/repos/humaneval/HumanEval_90",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_91",
+      "group_id": "benchmark:HumanEval:HumanEval_91",
+      "repo": "data/repos/humaneval/HumanEval_91",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_92",
+      "group_id": "benchmark:HumanEval:HumanEval_92",
+      "repo": "data/repos/humaneval/HumanEval_92",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_93",
+      "group_id": "benchmark:HumanEval:HumanEval_93",
+      "repo": "data/repos/humaneval/HumanEval_93",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_94",
+      "group_id": "benchmark:HumanEval:HumanEval_94",
+      "repo": "data/repos/humaneval/HumanEval_94",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_95",
+      "group_id": "benchmark:HumanEval:HumanEval_95",
+      "repo": "data/repos/humaneval/HumanEval_95",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_96",
+      "group_id": "benchmark:HumanEval:HumanEval_96",
+      "repo": "data/repos/humaneval/HumanEval_96",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_97",
+      "group_id": "benchmark:HumanEval:HumanEval_97",
+      "repo": "data/repos/humaneval/HumanEval_97",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_98",
+      "group_id": "benchmark:HumanEval:HumanEval_98",
+      "repo": "data/repos/humaneval/HumanEval_98",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_99",
+      "group_id": "benchmark:HumanEval:HumanEval_99",
+      "repo": "data/repos/humaneval/HumanEval_99",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_100",
+      "group_id": "benchmark:MBPP:mbpp_100",
+      "repo": "data/repos/mbpp/mbpp_100",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_101",
+      "group_id": "benchmark:MBPP:mbpp_101",
+      "repo": "data/repos/mbpp/mbpp_101",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_102",
+      "group_id": "benchmark:MBPP:mbpp_102",
+      "repo": "data/repos/mbpp/mbpp_102",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_103",
+      "group_id": "benchmark:MBPP:mbpp_103",
+      "repo": "data/repos/mbpp/mbpp_103",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_105",
+      "group_id": "benchmark:MBPP:mbpp_105",
+      "repo": "data/repos/mbpp/mbpp_105",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_106",
+      "group_id": "benchmark:MBPP:mbpp_106",
+      "repo": "data/repos/mbpp/mbpp_106",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_107",
+      "group_id": "benchmark:MBPP:mbpp_107",
+      "repo": "data/repos/mbpp/mbpp_107",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_108",
+      "group_id": "benchmark:MBPP:mbpp_108",
+      "repo": "data/repos/mbpp/mbpp_108",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_109",
+      "group_id": "benchmark:MBPP:mbpp_109",
+      "repo": "data/repos/mbpp/mbpp_109",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_11",
+      "group_id": "benchmark:MBPP:mbpp_11",
+      "repo": "data/repos/mbpp/mbpp_11",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_110",
+      "group_id": "benchmark:MBPP:mbpp_110",
+      "repo": "data/repos/mbpp/mbpp_110",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_12",
+      "group_id": "benchmark:MBPP:mbpp_12",
+      "repo": "data/repos/mbpp/mbpp_12",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_13",
+      "group_id": "benchmark:MBPP:mbpp_13",
+      "repo": "data/repos/mbpp/mbpp_13",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_16",
+      "group_id": "benchmark:MBPP:mbpp_16",
+      "repo": "data/repos/mbpp/mbpp_16",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_18",
+      "group_id": "benchmark:MBPP:mbpp_18",
+      "repo": "data/repos/mbpp/mbpp_18",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_20",
+      "group_id": "benchmark:MBPP:mbpp_20",
+      "repo": "data/repos/mbpp/mbpp_20",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_21",
+      "group_id": "benchmark:MBPP:mbpp_21",
+      "repo": "data/repos/mbpp/mbpp_21",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_23",
+      "group_id": "benchmark:MBPP:mbpp_23",
+      "repo": "data/repos/mbpp/mbpp_23",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_24",
+      "group_id": "benchmark:MBPP:mbpp_24",
+      "repo": "data/repos/mbpp/mbpp_24",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_25",
+      "group_id": "benchmark:MBPP:mbpp_25",
+      "repo": "data/repos/mbpp/mbpp_25",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_26",
+      "group_id": "benchmark:MBPP:mbpp_26",
+      "repo": "data/repos/mbpp/mbpp_26",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_27",
+      "group_id": "benchmark:MBPP:mbpp_27",
+      "repo": "data/repos/mbpp/mbpp_27",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_29",
+      "group_id": "benchmark:MBPP:mbpp_29",
+      "repo": "data/repos/mbpp/mbpp_29",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_30",
+      "group_id": "benchmark:MBPP:mbpp_30",
+      "repo": "data/repos/mbpp/mbpp_30",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_31",
+      "group_id": "benchmark:MBPP:mbpp_31",
+      "repo": "data/repos/mbpp/mbpp_31",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_32",
+      "group_id": "benchmark:MBPP:mbpp_32",
+      "repo": "data/repos/mbpp/mbpp_32",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_33",
+      "group_id": "benchmark:MBPP:mbpp_33",
+      "repo": "data/repos/mbpp/mbpp_33",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_34",
+      "group_id": "benchmark:MBPP:mbpp_34",
+      "repo": "data/repos/mbpp/mbpp_34",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_35",
+      "group_id": "benchmark:MBPP:mbpp_35",
+      "repo": "data/repos/mbpp/mbpp_35",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_36",
+      "group_id": "benchmark:MBPP:mbpp_36",
+      "repo": "data/repos/mbpp/mbpp_36",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_38",
+      "group_id": "benchmark:MBPP:mbpp_38",
+      "repo": "data/repos/mbpp/mbpp_38",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_39",
+      "group_id": "benchmark:MBPP:mbpp_39",
+      "repo": "data/repos/mbpp/mbpp_39",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_40",
+      "group_id": "benchmark:MBPP:mbpp_40",
+      "repo": "data/repos/mbpp/mbpp_40",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_41",
+      "group_id": "benchmark:MBPP:mbpp_41",
+      "repo": "data/repos/mbpp/mbpp_41",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_42",
+      "group_id": "benchmark:MBPP:mbpp_42",
+      "repo": "data/repos/mbpp/mbpp_42",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_44",
+      "group_id": "benchmark:MBPP:mbpp_44",
+      "repo": "data/repos/mbpp/mbpp_44",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_46",
+      "group_id": "benchmark:MBPP:mbpp_46",
+      "repo": "data/repos/mbpp/mbpp_46",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_47",
+      "group_id": "benchmark:MBPP:mbpp_47",
+      "repo": "data/repos/mbpp/mbpp_47",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_48",
+      "group_id": "benchmark:MBPP:mbpp_48",
+      "repo": "data/repos/mbpp/mbpp_48",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_49",
+      "group_id": "benchmark:MBPP:mbpp_49",
+      "repo": "data/repos/mbpp/mbpp_49",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_50",
+      "group_id": "benchmark:MBPP:mbpp_50",
+      "repo": "data/repos/mbpp/mbpp_50",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_51",
+      "group_id": "benchmark:MBPP:mbpp_51",
+      "repo": "data/repos/mbpp/mbpp_51",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_52",
+      "group_id": "benchmark:MBPP:mbpp_52",
+      "repo": "data/repos/mbpp/mbpp_52",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_53",
+      "group_id": "benchmark:MBPP:mbpp_53",
+      "repo": "data/repos/mbpp/mbpp_53",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_54",
+      "group_id": "benchmark:MBPP:mbpp_54",
+      "repo": "data/repos/mbpp/mbpp_54",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_55",
+      "group_id": "benchmark:MBPP:mbpp_55",
+      "repo": "data/repos/mbpp/mbpp_55",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_56",
+      "group_id": "benchmark:MBPP:mbpp_56",
+      "repo": "data/repos/mbpp/mbpp_56",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_57",
+      "group_id": "benchmark:MBPP:mbpp_57",
+      "repo": "data/repos/mbpp/mbpp_57",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_58",
+      "group_id": "benchmark:MBPP:mbpp_58",
+      "repo": "data/repos/mbpp/mbpp_58",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_59",
+      "group_id": "benchmark:MBPP:mbpp_59",
+      "repo": "data/repos/mbpp/mbpp_59",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_60",
+      "group_id": "benchmark:MBPP:mbpp_60",
+      "repo": "data/repos/mbpp/mbpp_60",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_61",
+      "group_id": "benchmark:MBPP:mbpp_61",
+      "repo": "data/repos/mbpp/mbpp_61",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_62",
+      "group_id": "benchmark:MBPP:mbpp_62",
+      "repo": "data/repos/mbpp/mbpp_62",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_63",
+      "group_id": "benchmark:MBPP:mbpp_63",
+      "repo": "data/repos/mbpp/mbpp_63",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_64",
+      "group_id": "benchmark:MBPP:mbpp_64",
+      "repo": "data/repos/mbpp/mbpp_64",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_65",
+      "group_id": "benchmark:MBPP:mbpp_65",
+      "repo": "data/repos/mbpp/mbpp_65",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_66",
+      "group_id": "benchmark:MBPP:mbpp_66",
+      "repo": "data/repos/mbpp/mbpp_66",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_67",
+      "group_id": "benchmark:MBPP:mbpp_67",
+      "repo": "data/repos/mbpp/mbpp_67",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_68",
+      "group_id": "benchmark:MBPP:mbpp_68",
+      "repo": "data/repos/mbpp/mbpp_68",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_69",
+      "group_id": "benchmark:MBPP:mbpp_69",
+      "repo": "data/repos/mbpp/mbpp_69",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_70",
+      "group_id": "benchmark:MBPP:mbpp_70",
+      "repo": "data/repos/mbpp/mbpp_70",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_71",
+      "group_id": "benchmark:MBPP:mbpp_71",
+      "repo": "data/repos/mbpp/mbpp_71",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_72",
+      "group_id": "benchmark:MBPP:mbpp_72",
+      "repo": "data/repos/mbpp/mbpp_72",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_73",
+      "group_id": "benchmark:MBPP:mbpp_73",
+      "repo": "data/repos/mbpp/mbpp_73",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_74",
+      "group_id": "benchmark:MBPP:mbpp_74",
+      "repo": "data/repos/mbpp/mbpp_74",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_75",
+      "group_id": "benchmark:MBPP:mbpp_75",
+      "repo": "data/repos/mbpp/mbpp_75",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_76",
+      "group_id": "benchmark:MBPP:mbpp_76",
+      "repo": "data/repos/mbpp/mbpp_76",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_77",
+      "group_id": "benchmark:MBPP:mbpp_77",
+      "repo": "data/repos/mbpp/mbpp_77",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_78",
+      "group_id": "benchmark:MBPP:mbpp_78",
+      "repo": "data/repos/mbpp/mbpp_78",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_79",
+      "group_id": "benchmark:MBPP:mbpp_79",
+      "repo": "data/repos/mbpp/mbpp_79",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_80",
+      "group_id": "benchmark:MBPP:mbpp_80",
+      "repo": "data/repos/mbpp/mbpp_80",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_81",
+      "group_id": "benchmark:MBPP:mbpp_81",
+      "repo": "data/repos/mbpp/mbpp_81",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_82",
+      "group_id": "benchmark:MBPP:mbpp_82",
+      "repo": "data/repos/mbpp/mbpp_82",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_83",
+      "group_id": "benchmark:MBPP:mbpp_83",
+      "repo": "data/repos/mbpp/mbpp_83",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_84",
+      "group_id": "benchmark:MBPP:mbpp_84",
+      "repo": "data/repos/mbpp/mbpp_84",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_85",
+      "group_id": "benchmark:MBPP:mbpp_85",
+      "repo": "data/repos/mbpp/mbpp_85",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_86",
+      "group_id": "benchmark:MBPP:mbpp_86",
+      "repo": "data/repos/mbpp/mbpp_86",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_87",
+      "group_id": "benchmark:MBPP:mbpp_87",
+      "repo": "data/repos/mbpp/mbpp_87",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_88",
+      "group_id": "benchmark:MBPP:mbpp_88",
+      "repo": "data/repos/mbpp/mbpp_88",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_89",
+      "group_id": "benchmark:MBPP:mbpp_89",
+      "repo": "data/repos/mbpp/mbpp_89",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_90",
+      "group_id": "benchmark:MBPP:mbpp_90",
+      "repo": "data/repos/mbpp/mbpp_90",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_91",
+      "group_id": "benchmark:MBPP:mbpp_91",
+      "repo": "data/repos/mbpp/mbpp_91",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_92",
+      "group_id": "benchmark:MBPP:mbpp_92",
+      "repo": "data/repos/mbpp/mbpp_92",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_93",
+      "group_id": "benchmark:MBPP:mbpp_93",
+      "repo": "data/repos/mbpp/mbpp_93",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_94",
+      "group_id": "benchmark:MBPP:mbpp_94",
+      "repo": "data/repos/mbpp/mbpp_94",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_95",
+      "group_id": "benchmark:MBPP:mbpp_95",
+      "repo": "data/repos/mbpp/mbpp_95",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_96",
+      "group_id": "benchmark:MBPP:mbpp_96",
+      "repo": "data/repos/mbpp/mbpp_96",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_97",
+      "group_id": "benchmark:MBPP:mbpp_97",
+      "repo": "data/repos/mbpp/mbpp_97",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_98",
+      "group_id": "benchmark:MBPP:mbpp_98",
+      "repo": "data/repos/mbpp/mbpp_98",
+      "split": "train"
+    },
+    {
+      "task_id": "mbpp_99",
+      "group_id": "benchmark:MBPP:mbpp_99",
+      "repo": "data/repos/mbpp/mbpp_99",
+      "split": "train"
+    },
+    {
+      "task_id": "HumanEval_11",
+      "group_id": "benchmark:HumanEval:HumanEval_11",
+      "repo": "data/repos/humaneval/HumanEval_11",
+      "split": "validation"
+    },
+    {
+      "task_id": "HumanEval_20",
+      "group_id": "benchmark:HumanEval:HumanEval_20",
+      "repo": "data/repos/humaneval/HumanEval_20",
+      "split": "validation"
+    },
+    {
+      "task_id": "mbpp_104",
+      "group_id": "benchmark:MBPP:mbpp_104",
+      "repo": "data/repos/mbpp/mbpp_104",
+      "split": "validation"
+    },
+    {
+      "task_id": "mbpp_14",
+      "group_id": "benchmark:MBPP:mbpp_14",
+      "repo": "data/repos/mbpp/mbpp_14",
+      "split": "validation"
+    },
+    {
+      "task_id": "mbpp_15",
+      "group_id": "benchmark:MBPP:mbpp_15",
+      "repo": "data/repos/mbpp/mbpp_15",
+      "split": "validation"
+    },
+    {
+      "task_id": "mbpp_22",
+      "group_id": "benchmark:MBPP:mbpp_22",
+      "repo": "data/repos/mbpp/mbpp_22",
+      "split": "validation"
+    },
+    {
+      "task_id": "mbpp_45",
+      "group_id": "benchmark:MBPP:mbpp_45",
+      "repo": "data/repos/mbpp/mbpp_45",
+      "split": "validation"
+    },
+    {
+      "task_id": "HumanEval_2",
+      "group_id": "benchmark:HumanEval:HumanEval_2",
+      "repo": "data/repos/humaneval/HumanEval_2",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_22",
+      "group_id": "benchmark:HumanEval:HumanEval_22",
+      "repo": "data/repos/humaneval/HumanEval_22",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_23",
+      "group_id": "benchmark:HumanEval:HumanEval_23",
+      "repo": "data/repos/humaneval/HumanEval_23",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_5",
+      "group_id": "benchmark:HumanEval:HumanEval_5",
+      "repo": "data/repos/humaneval/HumanEval_5",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_52",
+      "group_id": "benchmark:HumanEval:HumanEval_52",
+      "repo": "data/repos/humaneval/HumanEval_52",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_59",
+      "group_id": "benchmark:HumanEval:HumanEval_59",
+      "repo": "data/repos/humaneval/HumanEval_59",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_63",
+      "group_id": "benchmark:HumanEval:HumanEval_63",
+      "repo": "data/repos/humaneval/HumanEval_63",
+      "split": "test"
+    },
+    {
+      "task_id": "HumanEval_76",
+      "group_id": "benchmark:HumanEval:HumanEval_76",
+      "repo": "data/repos/humaneval/HumanEval_76",
+      "split": "test"
+    },
+    {
+      "task_id": "mbpp_17",
+      "group_id": "benchmark:MBPP:mbpp_17",
+      "repo": "data/repos/mbpp/mbpp_17",
+      "split": "test"
+    },
+    {
+      "task_id": "mbpp_28",
+      "group_id": "benchmark:MBPP:mbpp_28",
+      "repo": "data/repos/mbpp/mbpp_28",
+      "split": "test"
+    },
+    {
+      "task_id": "mbpp_43",
+      "group_id": "benchmark:MBPP:mbpp_43",
+      "repo": "data/repos/mbpp/mbpp_43",
+      "split": "test"
+    }
+  ],
+  "hidden_assertions": {
+    "train": {
+      "tasks": 171,
+      "public": 474,
+      "hidden": 336
+    },
+    "validation": {
+      "tasks": 7,
+      "public": 15,
+      "hidden": 8
+    },
+    "test": {
+      "tasks": 11,
+      "public": 29,
+      "hidden": 20
+    }
+  },
+  "sft_train_sha256": "dbbcbe6680be990a86c4218c550f660ed35e84e9cb6441e0b7494a3162116c5a",
+  "rebalance_audit": {
+    "seed": 42,
+    "counts": {
+      "train": 151,
+      "validation": 19,
+      "test": 19
+    },
+    "sft_seen_holdout_groups": [
+      "benchmark:HumanEval:HumanEval_1",
+      "benchmark:HumanEval:HumanEval_14",
+      "benchmark:HumanEval:HumanEval_15",
+      "benchmark:HumanEval:HumanEval_16",
+      "benchmark:HumanEval:HumanEval_29",
+      "benchmark:HumanEval:HumanEval_3",
+      "benchmark:HumanEval:HumanEval_33",
+      "benchmark:HumanEval:HumanEval_36",
+      "benchmark:HumanEval:HumanEval_43",
+      "benchmark:HumanEval:HumanEval_49",
+      "benchmark:HumanEval:HumanEval_61",
+      "benchmark:HumanEval:HumanEval_67",
+      "benchmark:HumanEval:HumanEval_68",
+      "benchmark:HumanEval:HumanEval_69",
+      "benchmark:HumanEval:HumanEval_70",
+      "benchmark:HumanEval:HumanEval_73",
+      "benchmark:HumanEval:HumanEval_80",
+      "benchmark:HumanEval:HumanEval_81",
+      "benchmark:HumanEval:HumanEval_95",
+      "benchmark:HumanEval:HumanEval_96",
+      "benchmark:MBPP:mbpp_16",
+      "benchmark:MBPP:mbpp_24",
+      "benchmark:MBPP:mbpp_40",
+      "benchmark:MBPP:mbpp_50",
+      "benchmark:MBPP:mbpp_54",
+      "benchmark:MBPP:mbpp_61",
+      "benchmark:MBPP:mbpp_62",
+      "benchmark:MBPP:mbpp_65",
+      "benchmark:MBPP:mbpp_71",
+      "benchmark:MBPP:mbpp_74",
+      "benchmark:MBPP:mbpp_83",
+      "benchmark:MBPP:mbpp_84",
+      "benchmark:MBPP:mbpp_87",
+      "benchmark:MBPP:mbpp_90",
+      "benchmark:MBPP:mbpp_92",
+      "benchmark:MBPP:mbpp_97"
+    ],
+    "requires_new_sft_split_and_adapter": true
+  }
+}
