@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from cc_agent.actions import execute_action
-from cc_agent.rl.artifacts import prepare_run
+from cc_agent.rl.artifacts import manifest, prepare_run
 from cc_agent.rl.config import RLConfig, load_config
 from cc_agent.rl.data import load_tasks, select, validate_isolation
 from cc_agent.rl.environment import Environment, SandboxVerifier, hashes, sandbox_command, validate_candidate
@@ -387,6 +387,27 @@ class RLTests(unittest.TestCase):
         self.assertEqual(result["task_success_rate"], 1)
         self.assertIn("length", result["reward_components"])
         self.assertEqual(result["failure_types"], {})
+
+    def test_manifest_tasks_survive_json_round_trip(self):
+        data = self.root / "data/rl"
+        data.mkdir(parents=True)
+        (data / "manifest.json").write_text("{}")
+        (data / "train.jsonl").write_text("{}\n")
+        model = self.root / "model"
+        model.mkdir()
+        (model / "config.json").write_text("{}")
+        adapter = self.root / "adapter"
+        adapter.mkdir()
+        (adapter / "adapter_config.json").write_text("{}")
+        (adapter / "adapter_model.safetensors").write_bytes(b"fixture")
+
+        with patch("cc_agent.rl.artifacts.subprocess.check_output", return_value="fixture-commit\n"):
+            record = manifest(self.root, [self.task], self.config, model, adapter, "train")
+
+        smoke = json.loads(json.dumps(record))
+        self.assertEqual(smoke["tasks"], record["tasks"])
+        self.assertEqual(record["tasks"][0]["editable"], ["solution.py"])
+        self.assertEqual(self.task.editable, ("solution.py",))
 
     def test_resume_checks_full_checkpoint_and_manifest(self):
         output = self.root / "run"

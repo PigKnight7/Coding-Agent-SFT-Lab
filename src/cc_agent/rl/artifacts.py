@@ -65,7 +65,7 @@ def manifest(root, tasks, config, model, adapter, kind):
             "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
             "dependencies": dependencies,
             "files": {p.relative_to(root).as_posix(): digest(p) for p in sorted(paths)},
-            "tasks": [{**asdict(t), "repo": str(Path(t.repo).relative_to(root)),
+            "tasks": [{**asdict(t), "editable": list(t.editable), "repo": str(Path(t.repo).relative_to(root)),
                        "hidden_hashes": {p.relative_to(t.hidden_tests).as_posix(): digest(p)
                                          for p in sorted(Path(t.hidden_tests).rglob("*")) if p.is_file()} if t.hidden_tests else {},
                        "repo_hashes": {p.relative_to(t.repo).as_posix(): digest(p) for p in sorted(Path(t.repo).rglob("*"))
