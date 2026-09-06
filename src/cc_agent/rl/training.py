@@ -1,4 +1,5 @@
 """Public TRL 1.12.0 integration. No Trainer overrides or patched loss implementations."""
+from dataclasses import asdict
 import importlib.metadata
 import inspect
 import json
@@ -8,6 +9,7 @@ import uuid
 from pathlib import Path
 
 from cc_agent.rl.rollout import Generation, rollout, task_prompt
+from cc_agent.rl.rewards import primary_outcome, optimization_rewards
 from cc_agent.tracing import append_trace
 
 TRL_VERSION = "1.12.0"
@@ -72,8 +74,9 @@ class RolloutBridge:
         was_training = model.training
         model.eval()
         results = []
+        selected_rewards = []
         batch_id = uuid.uuid4().hex  # Also unique across resume/aborted calls.
-        initial_zero = final_zero = exhausted = retries = 0
+        initial_zero = final_zero = exhausted = retries = total_zero = 0
         retry_limit = self.config.dynamic_sampling_max_retries if self.config.dynamic_sampling_enabled else 0
         try:
             for start in range(0, len(task_ids), g):
@@ -95,18 +98,28 @@ class RolloutBridge:
                     # TRL stores reward function output in float32. Detect equality
                     # at that precision too, without importing torch on CPU tests.
                     rounded = [struct.unpack("f", struct.pack("f", r))[0] for r in rewards]
-                    zero = max(rounded) - min(rounded) <= self.config.zero_variance_epsilon
+                    total_reward_zero = max(rounded) - min(rounded) <= self.config.zero_variance_epsilon
+                    outcomes = [primary_outcome(t) for t, _ in candidates]
+                    zero = len(set(outcomes)) == 1
                     if attempt == 0:
                         initial_zero += zero
+                        total_zero += total_reward_zero
                     accepted = not zero or attempt == retry_limit
                     is_exhausted = accepted and zero and self.config.dynamic_sampling_enabled
+                    optimized = optimization_rewards(outcomes, rewards) if accepted else None
                     append_trace(self.trace_path, "rl_group_attempt", {
                         "batch_id": batch_id, "group_index": start // g, "task_id": task_id,
-                        "attempt": attempt, "rollout_ids": rollout_ids, "rewards": rewards,
-                        "zero_variance": zero, "exhausted": is_exhausted,
+                        "attempt": attempt, "rollout_ids": rollout_ids,
+                        "primary_outcomes": [asdict(o) for o in outcomes],
+                        "diagnostic_total_reward": rewards, "optimization_reward": optimized,
+                        "reward_components": [r.components for _, r in candidates],
+                        "correctness_zero_variance": zero,
+                        "total_reward_zero_variance": total_reward_zero,
+                        "optimization_reward_zeroed": accepted and zero, "exhausted": is_exhausted,
                         "selection": "accepted" if accepted else "discarded"})
                     if accepted:
                         results.extend(candidates)
+                        selected_rewards.extend(optimized)
                         final_zero += zero
                         exhausted += is_exhausted
                         break
@@ -117,8 +130,10 @@ class RolloutBridge:
         groups = len(task_ids) // g
         self.last_statistics = {
             **metrics(results), "batch_id": batch_id, "group_count": groups,
-            "zero_variance_group_rate": initial_zero / groups,
-            "accepted_zero_variance_group_rate": final_zero / groups,
+            "correctness_zero_variance_group_rate": initial_zero / groups,
+            "accepted_correctness_zero_variance_group_rate": final_zero / groups,
+            "total_reward_zero_variance_group_rate": total_zero / groups,
+            "optimization_reward_zeroed_group_rate": final_zero / groups,
             "dynamic_sampling_retry_count": retries,
             "dynamic_sampling_exhausted_rate": exhausted / groups,
             "dynamic_sampling_exhausted_count": exhausted,
@@ -128,12 +143,11 @@ class RolloutBridge:
         append_trace(Path(self.trace_path).parent / "training_log.jsonl", "rl_sampling_metrics", {
             "step": getattr(getattr(trainer, "state", None), "global_step", None),
             **self.last_statistics})
-        rewards = [r.total for _, r in results]
         return {"prompt_ids": [t.prompt_ids for t, _ in results],
                 "completion_ids": [t.completion_ids for t, _ in results],
                 "env_mask": [t.loss_mask for t, _ in results],
                 # TRL snapshots old logprobs before two optimizer iterations reuse this rollout.
-                "logprobs": None, "verified_reward": rewards}
+                "logprobs": None, "verified_reward": selected_rewards}
 
 
 def verified_reward(completions, verified_reward, **kwargs):

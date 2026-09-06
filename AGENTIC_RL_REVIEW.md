@@ -1,8 +1,38 @@
 # Agentic RL reward v2 审查（2026-09-06）
 
-第二轮实现已修复 CPU 可验证的奖励排序与采样接线；**第二轮 GPU Smoke/正式训练尚未验证**。
+按用户提供的结果，reward v2 真实 GPU Smoke 已通过基本训练验证，但发现 total_reward 采样判据缺陷。
+本次修复 correctness/safety 采样与 optimization reward；修复后的 GPU 行为尚未验证。
 本轮未下载模型、未运行 GPU、未运行 validation/test、未提交或推送 Git。第一轮实验产物不覆盖。
 详细公式、上下界、采样定义、监控分母和云端命令见 [Runbook](AGENTIC_RL_RUNBOOK.md)。
+
+## correctness-first Dynamic Sampling 修复
+
+用户提供的 Smoke 指标：两条均 all_tests_failed、max_turns；full_success_rate、partial_test_pass_rate、
+mean_test_pass_fraction 均为 0，但 zero_variance_group_rate=0、dynamic_sampling_retry_count=0。
+旧有界采样只比较 total_reward，legality/arguments/format/repeated 的小差异使两条 0/N 被误收。
+GRPO 将微小差异按组标准化为优势，辅助绝对权重再小也不能阻止“规范地失败”的 shortcut。
+
+现在通过 primary outcome（完整成功、可信通过比例、protected/integrity failure、timeout）判断组信息性。
+四项全同则整组重试；达到上限后将返回 TRL 的 optimization_reward 全设精确 0.0。
+禁用或零次重试同样保护；原始 diagnostic_total_reward、全部分量、候选和最终选中关联保留。
+安全差异仍可形成梯度，不会把普通失败和危险轨迹合并。
+对于有信息的组检查完整 primary 排序；若总奖励因跨终止类别惩罚而逆序，改用分隔等级加有界总奖励项。
+等级依次优先避免完整性失败、避免超时、完整成功、通过比例；完整算法与指标分母见 Runbook。
+返回数量、输入行顺序、Token、mask、verified_reward 回调、old logprobs 和 TRL 参数契约均不变。
+
+指标明确区分 correctness_zero_variance_group_rate、accepted_correctness_zero_variance_group_rate、
+total_reward_zero_variance_group_rate、dynamic_sampling_retry_count、dynamic_sampling_exhausted_rate、
+optimization_reward_zeroed_group_rate。旧无前缀零方差指标被替换。
+
+本次新增回归覆盖辅助差异重采样、耗尽置零与原始分量审计、真实 CPU float32 GRPO 优势为零、
+0/2 与 1/2 接受、安全差异保留、跨终止正确性排序和不可信计数。
+下文“第二轮”及其 114 项测试记录为修复前历史，不是本次修复验收结果。
+
+本次最终验收：`PATH=/tmp/agentic-rl-v2-venv/bin:$PATH PYTHON_BIN=/tmp/agentic-rl-v2-venv/bin/python bash scripts/final_rl_preflight.sh`
+通过，内含全部 **121/121 CPU 测试**、真实隔离正/负控制、静态配置/冻结数据检查、编译与空白检查。
+日志：`/tmp/rl-primary-preflight.log`。初次全量 119 项中旧“全成功组奖励为正”的优化奖励断言失败；
+已改为同时检查成功诊断奖励为正、primary 成功和优化奖励全零，未放宽 Token/mask 契约。
+新增 7 项回归并更新原采样测试；未运行 GPU、模型评测、validation/test，未改 SFT/数据/RAG。
 
 ## 第一轮根因
 

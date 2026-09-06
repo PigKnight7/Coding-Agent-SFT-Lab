@@ -139,12 +139,29 @@ TRL 通过最后一个 Token 是否 EOS 判断技术截断。预算耗尽保留�
 轮数耗尽、任务失败、超时和保护终止增加 **mask=0 的环境 EOS**，避免被误过滤。
 每轮 action Token 上限、累计模型 Token 上限和上下文 Token 上限属于技术预算。
 所有轨迹仍保留日志和奖励；只有技术截断的策略损失由 TRL mask。
-reward v2 实现 **同任务有界 Dynamic Sampling**：每个相邻 G 行 group 整组生成并独立评分，
-按 TRL reward 的 float32 精度比较 max−min≤zero_variance_epsilon；等值/近等值则整组丢弃，
-对同一任务重新生成 G 条。默认 enabled=true、max_retries=3、epsilon=1e−6；
-每组最多 4G 条，直到非零方差或耗尽。耗尽保留最后一组，标记 exhausted；不保证全批有优势。
-max_retries 严格校验为整数 [0,16]；epsilon 为有限数 [0,1e−4]；enabled 必须是真布尔值。
-0 次重试表示立即耗尽；disabled 不重试且不称为 exhausted。
+reward v2 修正为 **基于 correctness/safety outcome 的同任务有界 Dynamic Sampling**。
+此前只检查 total_reward 方差，即使辅助预算很小，两条均 0/N 的轨迹也可能因过程奖励不同而被接受。
+GRPO 的组内标准化会放大这些微小差异；缩小绝对权重不能消除“规范地失败”的 reward shortcut。
+
+每条轨迹的 primary outcome 包含 full_success、可信 test_pass_fraction、protected_integrity_failure、timeout。
+可信比例沿用独立终局验证、隐藏测试、完整性和超时检查；不可信计数为 0。
+四项全部相同才是 correctness-zero-variance；辅助项、普通终止原因不能使其成为有效组。
+存在通过比例、完整成功或安全状态差异就接受，包括普通失败与 integrity failure 的组。
+每个相邻 G 行 group 整组生成，默认 enabled=true、max_retries=3，每组最多 4G 条。
+耗尽保留最后组，但 optimization_reward 全设为精确 0.0，确保 TRL float32 归一化优势为零。
+禁用采样或 max_retries=0 也执行相同的优化奖励保护；disabled 不计 exhausted。
+
+有 primary variance 时，若 diagnostic total 已严格保持 primary 排序则直接使用；否则使用组内
+primary 等级序号 + 0.05*tanh(diagnostic_total_reward)，相邻等级间隔至少 0.9。
+排序依次优先避免 integrity failure、避免 timeout、完整成功、通过比例，防止跨终止类别的惩罚
+或辅助项逆转正确性排序。仅安全差异仍形成梯度；同 outcome 的纯辅助差异不能单独开启训练。
+`rl_trajectory` 保留 total_reward 兼容字段、diagnostic_total_reward 和原始 reward.components；
+`rl_group_attempt` 按 rollout_ids 顺序记录 primary_outcomes、diagnostic_total_reward、reward_components、
+optimization_reward（丢弃组为 null）、selection、correctness_zero_variance、total_reward_zero_variance、
+optimization_reward_zeroed、exhausted。最终 optimization_reward 经原 verified_reward 字段交给 TRL。
+
+max_retries 严格校验为整数 [0,16]；zero_variance_epsilon 为有限数 [0,1e−4]，现仅用于总奖励
+float32 方差诊断，不参与 primary outcome 判定；enabled 必须是真布尔值。
 Smoke/formal 这些参数完全一致，manifest gate 保持仅允许原有规模差异。
 
 实现仅使用公共 rollout_func，最终仍按输入顺序每行返回一条 prompt/completion/mask/reward，
@@ -280,8 +297,12 @@ failure_types 将 failed_finish、max_turns、timeout、protected_integrity_fail
 mean_test_pass_fraction 是可信逐任务比例的宏平均；原 test_pass_rate 保留原始总 passed/总 total 的微平均。
 
 训练在 training_log.jsonl 的 rl_sampling_metrics 事件中逐已采用批次记录以上指标，以及
-zero_variance_group_rate（首轮零方差组/输入组）、accepted_zero_variance_group_rate（最终零方差组/输入组）、
-dynamic_sampling_retry_count（本批额外整组尝试数）、dynamic_sampling_exhausted_rate 和 exhausted_count。
+correctness_zero_variance_group_rate（首轮 primary 全同组/输入组）、
+accepted_correctness_zero_variance_group_rate（最终 primary 全同组/输入组）、
+total_reward_zero_variance_group_rate（首轮总奖励 float32 近等值组/输入组）、
+optimization_reward_zeroed_group_rate（最终优化奖励主动置零组/输入组）、
+dynamic_sampling_retry_count（本批额外整组尝试数）、dynamic_sampling_exhausted_rate（耗尽组/输入组）
+和 dynamic_sampling_exhausted_count。这里 correctness-zero-variance 包含安全状态一致的要求。
 每行包含 step、batch_id、tasks 和 group_count；跨批轨迹率按 tasks 加权，组率按 group_count 加权，retry_count 求和。
 这些日志按生成批次计一次，不按 μ=2 重复计数；原 trainer_log 和模型更新审计继续保留。
 无模型时不产生评测指标文件。
@@ -293,7 +314,9 @@ Mock 只存在于 CPU 测试，不进入正式 CLI。
 Python 编译、Shell 语法及所有 tracked/untracked diff 空白检查。pytest 缺失时必须先在自己的 Python 环境安装依赖。
 本轮使用 `/tmp/agentic-rl-v2-venv`，Python 3.12.3、pytest 8.4.2、CPU-only torch 2.6.0+cpu、
 transformers 5.5.0（原有 Tensor/BatchEncoding 回归测试需要真实依赖），未安装 TRL、未下载模型。
-全部 114 项测试（原 95 项 + 新增 19 项）通过，完整 CPU 预检通过。命令和初期依赖缺失记录见 Review。
+本次 correctness/safety 采样修复后，全部 **121 项 CPU 测试**通过，`final_rl_preflight.sh` 完整通过。
+日志为 `/tmp/rl-primary-preflight.log`；修复前 114 项历史及本次验收命令见 Review。
+用户提供的修复前 GPU Smoke 已通过基本训练验证；本次未运行 GPU，修复后的 GPU 行为仍待验证。
 当前宿主工具环境的 bubblewrap 探针报告 `NETLINK_ROUTE ... Operation not permitted`，
 因此真实正/负控制和 Canary 使用轻量隔离后端通过。不能把此结果写成 bubblewrap 强隔离通过。
 

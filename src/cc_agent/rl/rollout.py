@@ -136,5 +136,5 @@ def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None, 
         t.close(reason)
     reward = score(t, safe=config.safe_length, limit=config.max_model_tokens, cap=config.length_cap)
     if trace_path:
-        append_trace(trace_path, "rl_trajectory", {**asdict(t), **(trace_context or {}), "reward": asdict(reward), "total_reward": reward.total})
+        append_trace(trace_path, "rl_trajectory", {**asdict(t), **(trace_context or {}), "reward": asdict(reward), "total_reward": reward.total, "diagnostic_total_reward": reward.total})
     return t, reward

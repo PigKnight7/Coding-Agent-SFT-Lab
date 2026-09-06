@@ -1,4 +1,7 @@
 """Correctness tiers with a bounded, secondary process signal (reward v2)."""
+from dataclasses import dataclass
+import math
+
 from cc_agent.rl.protocol import Reward, Termination
 
 SUCCESS_REWARD = 2.0
@@ -29,6 +32,41 @@ def test_fraction(t):
 
 def full_success(t):
     return test_fraction(t) == 1 and t.termination == Termination.FINISH and t.changed
+
+
+@dataclass(frozen=True)
+class PrimaryOutcome:
+    full_success: bool
+    test_pass_fraction: float
+    protected_integrity_failure: bool
+    timeout: bool
+
+    def ordering_key(self):
+        # Integrity takes precedence over timeout; both take precedence over progress.
+        return (not self.protected_integrity_failure, not self.timeout,
+                self.full_success, self.test_pass_fraction)
+
+
+def primary_outcome(t):
+    return PrimaryOutcome(full_success(t), test_fraction(t), hard_failure(t), timed_out(t))
+
+
+def optimization_rewards(outcomes, diagnostic_rewards):
+    keys = [o.ordering_key() for o in outcomes]
+    levels = sorted(set(keys))
+    if len(levels) == 1:
+        # Exactly representable even after TRL float32 conversion and centering.
+        return [0.0] * len(keys)
+    # Keep reward v2 where it respects primary ordering. Cross-termination
+    # penalties can reverse adjacent pass counts: use separated outcome ranks
+    # in that case, retaining only a bounded diagnostic tie-breaker.
+    ranges = [(min(r for k, r in zip(keys, diagnostic_rewards) if k == level),
+               max(r for k, r in zip(keys, diagnostic_rewards) if k == level)) for level in levels]
+    if all(a[1] < b[0] for a, b in zip(ranges, ranges[1:])):
+        return list(diagnostic_rewards)
+    ranks = {level: i for i, level in enumerate(levels)}
+    return [float(ranks[k]) + AUXILIARY_BUDGET * math.tanh(r)
+            for k, r in zip(keys, diagnostic_rewards)]
 
 
 def length_penalty(tokens, safe=1536, limit=2048, cap=1.0, success_reward=2.0):

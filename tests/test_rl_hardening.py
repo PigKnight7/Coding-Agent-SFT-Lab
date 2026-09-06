@@ -241,11 +241,16 @@ class HardeningTests(unittest.TestCase):
              patch('cc_agent.rl.training.load_model', return_value=(model, types.SimpleNamespace(tokenizer=tokenizer))), \
              patch('cc_agent.rl.training.trainable_digest', side_effect=['initial', 'updated']):
             train([self.task], self.config, 'local-model', 'formal-adapter', directory)
+            rows = [json.loads(line) for line in (Path(directory) / 'rollouts.jsonl').read_text().splitlines()]
+            selected = [r['payload'] for r in rows if r['event'] == 'rl_group_attempt'
+                        and r['payload']['selection'] == 'accepted']
+            self.assertTrue(all(r > 0 for r in selected[0]['diagnostic_total_reward']))
+            self.assertTrue(all(o['full_success'] for o in selected[0]['primary_outcomes']))
         self.assertEqual(captured['args']['num_iterations'], 2)
         self.assertEqual(captured['args']['loss_type'], 'dapo')
         self.assertNotIn('peft_config', captured)
         self.assertNotIn('eval_dataset', captured)
-        self.assertTrue(all(r > 0 for r in captured['rewards']))
+        self.assertEqual(captured['rewards'], [0.0, 0.0])
         for ids, mask in zip(captured['result']['completion_ids'], captured['result']['env_mask']):
             self.assertEqual(len(ids), len(mask))
             self.assertIn(0, mask)
