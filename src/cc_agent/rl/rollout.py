@@ -69,7 +69,7 @@ class ByteTokenizer:
         return self.encode(json.dumps(messages) + "\nassistant:\n")
 
 
-def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None):
+def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None, trace_context=None):
     t = Trajectory(task.task_id)
     with Environment(task, timeout=config.tool_timeout, output_limit=config.output_limit, verifier=verifier) as env:
         messages = task_prompt(task)
@@ -98,7 +98,7 @@ def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None):
                 t.actions.append(Action(action["tool"], action["arguments"]))
                 t.observations.append(observation)
                 if trace_path:
-                    append_trace(trace_path, "rl_tool_call", {"task_id": task.task_id, "action": action, "observation": asdict(observation)})
+                    append_trace(trace_path, "rl_tool_call", {**(trace_context or {}), "task_id": task.task_id, "action": action, "observation": asdict(observation)})
                 if observation.blocked or not env.intact():
                     reason = Termination.PROTECTED
                     break
@@ -136,5 +136,5 @@ def rollout(task, policy, tokenizer, config, *, verifier=None, trace_path=None):
         t.close(reason)
     reward = score(t, safe=config.safe_length, limit=config.max_model_tokens, cap=config.length_cap)
     if trace_path:
-        append_trace(trace_path, "rl_trajectory", {**asdict(t), "reward": asdict(reward), "total_reward": reward.total})
+        append_trace(trace_path, "rl_trajectory", {**asdict(t), **(trace_context or {}), "reward": asdict(reward), "total_reward": reward.total})
     return t, reward

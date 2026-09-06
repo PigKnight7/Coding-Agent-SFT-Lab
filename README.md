@@ -13,10 +13,14 @@ SFT 后的唯一推荐云端流程、准确命令、奖励权重及恢复方法�
 原有 [SFT Runbook](TRAINING_RUNBOOK.md) 可独立使用；不要求运行 RL。
 
 RL 使用 TRL 公开 DAPO Token-level loss、Clip-Higher 和技术截断过滤，并加入仅统计模型 Token 的柔性长度惩罚。
-没有完整 Dynamic Sampling，不声称完整复现 DAPO。第一版支持单 GPU、保守 Python 函数任务和隔离 pytest；
+reward v2 加入正确性分层奖励、失败结束/轮数耗尽惩罚和同任务有界整组 Dynamic Sampling；不声称完整复现 DAPO。第一版支持单 GPU、保守 Python 函数任务和隔离 pytest；
 不支持任意 SWE 仓库。现有 SFT 数据及 RAG 核心不变，训练/验证/最终测试按 task/group 隔离。
 CPU 验收入口：`bash scripts/final_rl_preflight.sh`（需 pytest）。包含真实隔离 pytest 和无模型 Canary；当前后端为轻量隔离。
-原始测试划分为 518 条公开、364 条隐藏断言；隐藏验证只在轨迹结束后执行。尚无真实 GPU Smoke、GRPO 或模型评测指标。
+原始测试划分为 518 条公开、364 条隐藏断言；隐藏验证只在轨迹结束后执行。第一轮提供的 200 步结果只改善工具合法性（0.6607→1），任务成功率和测试通过率仍为 0；
+出现奖励捷径及固定 `replace_in_file → read_file → replace_in_file → run_tests → finish` 序列。
+第二轮代码尚未经过新 GPU Smoke/训练验证；旧 Smoke 随代码变化失效。
+必须使用新的 `outputs/agentic_rl_{smoke,formal}_reward_v2` 与 `eval_results/agentic_rl_validation_reward_v2` 目录，
+从相同正式 SFT Adapter 启动，保留第一轮结果。validation 选方案，test 在冻结后仅运行一次。
 
 > 说明：本仓库不包含任何私有 API、模型权重、训练 checkpoint 或个人路径。模型权重和训练输出请按文档本地生成。
 
@@ -449,4 +453,4 @@ outputs/qwen_supported_coding_agent_lora_llamafactory
 - 可选接入 Cross-Encoder reranker，与当前轻量代码感知 reranker 对比。
 - 扩充高质量真实 Agent traces，减少模板化过拟合。
 - 将 patch 样本纳入评估，增加真实测试执行指标。
-- 在现有 DAPO-style Agentic RL 上研究 Dynamic Sampling、更广任务沙箱和更多策略优化算法。
+- 在同任务有界采样基础上研究跨 prompt Dynamic Sampling、更广任务沙箱和更多策略优化算法。

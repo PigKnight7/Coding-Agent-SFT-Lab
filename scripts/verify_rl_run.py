@@ -25,10 +25,18 @@ def verify_run(path, expected_steps):
     if any(audit["grpo_kwargs"].get(k) != v for k, v in expected.items()):
         raise ValueError("Trainer DAPO settings differ from audited settings")
     rows = [json.loads(line) for line in (path / "rollouts.jsonl").read_text().splitlines()]
-    trajectories = [r["payload"] for r in rows if r["event"] == "rl_trajectory"]
+    # A candidate is evidence only after the entire callback batch was selected.
+    selected_batches = {r["payload"]["batch_id"] for r in rows if r["event"] == "rl_batch_selected"}
+    accepted = {rid for r in rows if r["event"] == "rl_group_attempt"
+                and r["payload"]["selection"] == "accepted"
+                and r["payload"]["batch_id"] in selected_batches
+                for rid in r["payload"]["rollout_ids"]}
+    trajectories = [r["payload"] for r in rows if r["event"] == "rl_trajectory"
+                    and r["payload"].get("rollout_id") in accepted]
     if not any(len(t["actions"]) >= 2 and any(o["legal"] for o in t["observations"]) for t in trajectories):
         raise ValueError("No real multi-turn legal-tool trajectory; Smoke gate not satisfied")
-    if any(len(t["loss_mask"]) != len(t["completion_ids"]) for t in trajectories):
+    if any(len(r["payload"]["loss_mask"]) != len(r["payload"]["completion_ids"])
+           for r in rows if r["event"] == "rl_trajectory"):
         raise ValueError("Malformed token mask")
     return {"steps": state["global_step"], "trajectories": len(trajectories), "finite_loss": True}
 

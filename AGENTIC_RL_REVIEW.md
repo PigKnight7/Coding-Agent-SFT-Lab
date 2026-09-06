@@ -1,3 +1,78 @@
+# Agentic RL reward v2 审查（2026-09-06）
+
+第二轮实现已修复 CPU 可验证的奖励排序与采样接线；**第二轮 GPU Smoke/正式训练尚未验证**。
+本轮未下载模型、未运行 GPU、未运行 validation/test、未提交或推送 Git。第一轮实验产物不覆盖。
+详细公式、上下界、采样定义、监控分母和云端命令见 [Runbook](AGENTIC_RL_RUNBOOK.md)。
+
+## 第一轮根因
+
+按本次提供的结果，正式 200 步后任务成功率和测试通过率仍为 0，合法性 0.6607→1，
+总奖励 −1.4982→−0.6400。七个任务均 0/2、已改/已测试、finish，固定五工具序列。
+旧 −1 的统一失败基线无法区分部分/全部失败，最多 +0.5 过程奖励与减少违规惩罚即可抬升奖励。
+untested_finish 只查是否运行测试，没有 failed_finish/max_turns。旧 Bridge 完全不重采样，
+零方差组仍返回 Trainer；β=0 时其优势为零，不提供有效策略梯度。
+因此第一轮奖励改善不是任务正确性改善，也不能把零方差比例日志叫作 Dynamic Sampling。
+
+## 第二轮变更与边界
+
+- 独立终局验证计数形成 test_progress；完整成功仍 +2，普通失败基线改 −3。
+  部分通过 +1.5+passed/total；failed_finish=−0.5，保留 untested_finish=−0.5，max_turns=−1.25。
+  辅助项连同长度总绝对预算 ≤0.05/(total+1)，安全/超时另有严重惩罚。
+  典型及极端组合排序、相邻 testcase 进度不会被辅助项反转，均有自动测试。
+- 公共 rollout_func 内同任务整组重试，默认最多额外 3 次；耗尽保留最后组并记录。
+  单卡、相邻重复 prompt、float32 奖励精度和有限数检查；返回顺序、基数、原始 Token/mask 不变。
+  原 DAPO、Clip-Higher、技术截断过滤、μ=2 old logprobs 复用参数保留，无 monkey patch。
+  对照 [TRL v1.12.0 固定源码](https://github.com/huggingface/trl/blob/v1.12.0/trl/trainer/grpo_trainer.py)
+  的回调、env_mask 消费和按 G 计算优势路径；尚未在本轮实际运行该依赖。
+- 不是论文的跨 prompt 动态补批，不保证每组非零方差；辅助差异仍可能形成组内优势。
+  reward 更负本身也不保证策略学会修复，需要新的 GPU Smoke 与 validation 对照。
+- candidate/accepted/discarded、exhausted 和完成批次关联可审计；Smoke 只接受已选中完成批次中的轨迹。
+  manifest JSON round-trip 的 editable list 修复和原测试保留；数据隔离、安全验证及证据 gate 不绕过。
+- 训练按最终采用批次记录正确性、失败终止、空编辑、初始/最终零方差及重试耗尽指标。
+  评测保留旧指标并增加 outcome_counts/termination_counts，区分部分/全部失败和终止原因。
+- 同一正式 SFT Adapter、新输出目录；代码更新使第一轮 Smoke 不再适用。
+  validation 用于选择，test 冻结后仅一次；不改数据、SFT、RAG，不做第二阶段 SFT 增强。
+
+## 本轮 CPU 验收
+
+新增 `tests/test_rl_reward_v2.py` 的 19 项测试，保留原 95 项，最终 **114/114 通过**。
+Python 3.12.3；`/tmp/agentic-rl-v2-venv` 中 pytest 8.4.2、torch 2.6.0+cpu、transformers 5.5.0。
+Torch 仅 CPU 构建，测试使用真实 Tensor/BatchEncoding；未安装 TRL、无模型下载或 GPU 运行。
+
+实际测试命令及结果（输出保存在本机 `/tmp/rl-v2-*.log`）：
+
+| 命令 | 结果 |
+| --- | --- |
+| `python3 -m unittest discover -s tests -v` | 初次 38 项，3 个导入错误：未设置 src 路径 |
+| `PYTHONPATH=src python3 -m unittest discover -s tests -v` | 初次 95 项，16 错误（缺 pytest/Torch 等依赖）、2 失败（untested_finish 误被缩放）；已补依赖并恢复原 −0.5，未改弱旧断言 |
+| `PYTHONPATH=src /tmp/agentic-rl-v2-venv/bin/python -m unittest discover -s tests -p test_rl_reward_v2.py -v` | 两次均 19/19 通过，后一次包括交叉指标与证据筛选修正 |
+| `PYTHONPATH=src /tmp/agentic-rl-v2-venv/bin/python -m unittest discover -s tests -v` | 补 pytest 后 114 项，2 个错误：缺真实 Torch |
+| `PATH=/tmp/agentic-rl-v2-venv/bin:$PATH PYTHONPATH=src python -m unittest discover -s tests -v` | 首次仍缺 Torch；补齐 CPU Torch/transformers 后 114/114 通过（19.179s） |
+| `PYTHON_BIN=/tmp/agentic-rl-v2-venv/bin/python bash scripts/final_rl_preflight.sh` | 通过；内部再次 114/114（19.420s） |
+| `git diff --check` | 通过 |
+
+完整预检包含真实隔离 pytest 正/负控制、严格 SFT 数据验证、全部 CPU 测试、Python 编译、Shell 语法、
+Smoke/formal 静态配置与冻结数据检查及 tracked/untracked 空白检查。实际隔离 backend=lightweight，
+不能当作 bubblewrap 强隔离或 GPU 训练证据。
+
+新增覆盖：奖励极端组合排序、1/2 高于 0/2、已测试失败 finish、max_turns 不能逃避、合法空成功负奖励、
+安全失败与不可信计数、相邻通过数的辅助预算、评测分母/交叉计数；零/非零组、float32/epsilon、
+有界重试与耗尽、禁用/零次重试、精确返回基数/顺序/原 mask、丢弃轨迹排除、异常恢复、
+单进程/组约束、严格配置/Smoke 对齐/DAPO 参数、训练日志，以及 Smoke 排除未采用候选。
+原 manifest editable tuple/list JSON round-trip、真实多轮 Tensor mask、安全攻击 Canary 等测试保留并通过。
+
+## 尚待云端验证
+
+实验性 rollout_func 的实际输入顺序、环境 Token 梯度 mask、old logprobs 在两次更新中的复用、
+Clip-Higher ratio、截断 loss、LoRA 有限梯度/更新、checkpoint RNG/optimizer 恢复，以及峰值显存。
+重采样最坏生成/验证成本为原来 4 倍，需测实际耗时与 exhausted 比例。
+不声称有界采样已解决策略坍缩；第二轮成功率提升目前无证据。
+
+---
+
+以下为 **2026-09-05 历史审查原文**，仅保留其当时证据和旧奖励背景；
+其中“当前”“尚无训练”等结论不代表第一轮完成后的状态，也不作为 reward v2 的 Smoke 证据。
+
 # agentic-rl 独立训练前审查（2026-09-05）
 
 结论：**BLOCKED（正式训练）**。CPU 可验证的接线、隔离与奖励修复已完成并通过预检；真实 4090D/TRL 的训练与恢复证据仍缺失。未下载模型、未运行 GPU 训练、未提交或推送代码。

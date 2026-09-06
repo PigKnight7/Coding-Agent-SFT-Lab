@@ -44,30 +44,71 @@ RAG 核心不变；RL 工具进程固定使用现有 lexical 模式，无联网 
 - `run_tests` 仅执行公开测试；轨迹结束后 `Environment.verify()` 才在另一私有副本加入隐藏断言并独立执行 pytest。
   隐藏源码、用例和失败输出不进入 prompt、工具返回、observation；最终日志只有独立验证标记和聚合计数。
 - 修改/删除测试、弱化断言、变更命令、修改验证器、提供伪造测试结果或执行危险 Python 均为不可恢复的保护终止。
-  一旦拦截，不再执行后续动作，success 固定为 −1，integrity 为 −2；辅助奖励无法抵消。
+  一旦拦截，不再执行后续动作，不发放正确性奖励，integrity 为 −3；辅助奖励无法抵消。
 
-## 奖励公式
+## 第一轮结论与 reward v2
 
-`R = success + legality + arguments + format + edit + invalid + dangerous + repeated + empty_edit + untested_finish + timeout + integrity + length`
+按第一轮提供的 validation 结果，200 步只改善工具合法性（0.6607 → 1），
+任务成功率和测试通过率均为 0；平均奖励 −1.4982 → −0.6400、轮数 8 → 5，截断率均为 0。
+7 条 RL 轨迹均 changed/tested_current_edit=true、0/2、finish，几乎固定为
+`replace_in_file → read_file → replace_in_file → run_tests → finish`。
+这是 reward shortcut 和策略模式坍缩，不能把奖励提升报告为代码能力提升。
+以上为第一轮用户提供的结果，本次没有重新运行或独立复核模型评测。
 
-| 分量 | 默认值/计算 |
+旧 success 对全部非成功情况统一给 −1，没有部分通过差异；过程正奖励最多 +0.5。
+测试过当前修改就能免除 untested_finish，即使测试全失败；max_turns 没有专门惩罚。
+格式、非法调用、重复调用等负项减少就能让失败奖励上升。
+例如五次调用全部合法、三次 ok、有 edit、一次重复且长度安全时，
+旧公式为 −1+0.1+0.06+0.1+0.2−0.1=−0.64。
+该例解释数值如何产生，不声称已拿到第一轮逐条分量；精确归因需对应原始 Trace。
+完整成功与失败旧上界仍有间隔，但 0/2 和 1/2 没有正确性差异，辅助项可完全决定二者排序。
+
+## 奖励公式与可证明边界
+
+权重为 `rewards.py` 中具名常量，由 CPU 排序回归测试约束，不允许 YAML 任意改大辅助项。
+仅终局 independent=true、hidden_total>0、完整性可信且无超时的 passed/total 可用于进度。
+公开工具测试仍只反馈公开测试；隐藏断言、失败输出和源码不进入 Actor。
+
+令 f=passed/total，完整成功要求 f=1、有效修改、finish 且无安全失败：
+
+- success：完整成功 +2，其余 −3。
+- test_progress：可信 f>0 且非完整成功时 +1.5+f，否则 0。1.5 是跨越终止惩罚带的进度门槛。
+- failed_finish：非完整成功却 finish，−0.5；不依赖 tested_current_edit。
+- untested_finish：finish 前没有测试当前修改，另扣 −0.5（保留原检查）。
+- max_turns：−1.25，比最差失败 finish 的合计 −1 更重，差额大于辅助项的最大摆幅。
+- integrity：保护终止、blocked 或完整性破坏，−3；dangerous 每次 −0.5，最多 −1。
+- timeout：保留 −0.5，并增加 timeout_severity=−3。安全失败不发放 test_progress 或成功奖励。
+- 辅助项包含 legality、arguments、format、edit、invalid、repeated、empty_edit、length。
+  先按旧公式计算原始向量 q（length 仍为模型 Token 的柔性惩罚），再令
+  `a=0.05/(total+1)`，`aux_i=a*q_i/max(1, sum(abs(q_i)))`。
+  因此所有辅助分量绝对值之和 ≤a≤0.05。length_cap 配置仅控制归一化前的长度项。
+
+`R = success + test_progress + failed_finish + untested_finish + max_turns
+     + integrity + dangerous + timeout + timeout_severity + sum(aux)`。
+
+下表为 total=2 的保守上下界（a=1/60；包含最差格式/长度等辅助信号）：
+
+| 轨迹 | 奖励区间 |
 | --- | --- |
-| success | 无硬失败、正常 finish、有效修改、独立验证标记且隐藏断言数大于 0、公开及隐藏测试全通过：+2；否则 −1 |
-| legality | +0.1 × 合法工具数 / 总决策数 |
-| arguments | +0.1 × 执行成功工具数 / 总决策数（执行结果代理指标） |
-| format | +0.1 × 可解析且进入工具边界的决策数 / 总决策数 |
-| edit | 最终目标文件相对初始 stub 有变化 +0.2，否则 −0.2 |
-| invalid | −0.2 × min(5, 非法工具数 + JSON 格式错误数) |
-| dangerous | −0.5 × min(2, 被保护 Hook 阻止的次数) |
-| repeated | −0.1 × min(5, 重复相同工具及参数次数) |
-| empty_edit | −0.1 × min(5, 没产生文本变化的编辑次数) |
-| untested_finish | finish 前未对当前版本主动测试：−0.5；改动后须重新测试 |
-| timeout | 工具或最终验证超时：−0.5 |
-| integrity | 保护违规（包括被拦截的尝试）或文件哈希变化：−2 |
-| length | `−min(1, max(0, model_tokens−1536)/512)` |
+| 2/2 完整成功（含未主动测试的成功） | [1.4833, 2.0167] |
+| 1/2 通过，任意普通终止 | [−2.2667, −0.9833] |
+| 1/2 通过，已测试后 finish | [−1.5167, −1.4833] |
+| 0/2，普通 task_failed/token_limit | [−3.0167, −2.9833] |
+| 0/2，已测试后 finish | [−3.5167, −3.4833] |
+| 0/2，未测试后 finish | [−4.0167, −3.9833] |
+| 0/2，max_turns | [−4.2667, −4.2333] |
+| timeout / dangerous / integrity（可组合） | [−11.8, −5.95]（跨 total 的宽界） |
 
-辅助正奖励合计至多 +0.5，因此失败轨迹总奖励仍为负。长度 cap 可配置，校验其不超过成功奖励 2；
-只统计模型生成 Token，不统计提示词、工具返回和环境 EOS。
+对任意 total，非安全失败的部分通过奖励 >−2.8，全失败普通终止 ≤−2.95；
+完整成功 ≥1.45，未完整成功但所有测试通过的轨迹也 ≤−0.45。
+同一任务、相同终止/主动测试状态下，相邻通过数带来至少 1/total 的差异，
+辅助项最大摆幅为 0.1/(total+1)，无法逆转排序。
+终止和主动测试惩罚是显式行为约束，不属于辅助项；不宣称相邻通过数在所有终止方式之间也严格排序。
+max_turns 与失败 finish 在同等正确性下仍有严格间隔，不能通过不结束逃避惩罚。
+这些常数满足显式不等式：max_turns 惩罚幅度 1.25 > failed_finish+untested_finish 的 1.0 加辅助摆幅 0.1；
+进度门槛 1.5 > 最大普通终止惩罚 1.25 加辅助摆幅 0.1。
+因此先选择有间隔的奖励带，再用测试锁定上下界，并非只把几个辅助权重凭直觉调小。
+技术截断的负奖励仍记账，但依照已有 TRL 配置会过滤其策略 loss。
 
 ## TRL / DAPO 边界
 
@@ -98,7 +139,29 @@ TRL 通过最后一个 Token 是否 EOS 判断技术截断。预算耗尽保留�
 轮数耗尽、任务失败、超时和保护终止增加 **mask=0 的环境 EOS**，避免被误过滤。
 每轮 action Token 上限、累计模型 Token 上限和上下文 Token 上限属于技术预算。
 所有轨迹仍保留日志和奖励；只有技术截断的策略损失由 TRL mask。
-没有完整 Dynamic Sampling，仅在 JSONL 中报告组内奖励方差为零的比例。不会自动重采样失败组。
+reward v2 实现 **同任务有界 Dynamic Sampling**：每个相邻 G 行 group 整组生成并独立评分，
+按 TRL reward 的 float32 精度比较 max−min≤zero_variance_epsilon；等值/近等值则整组丢弃，
+对同一任务重新生成 G 条。默认 enabled=true、max_retries=3、epsilon=1e−6；
+每组最多 4G 条，直到非零方差或耗尽。耗尽保留最后一组，标记 exhausted；不保证全批有优势。
+max_retries 严格校验为整数 [0,16]；epsilon 为有限数 [0,1e−4]；enabled 必须是真布尔值。
+0 次重试表示立即耗尽；disabled 不重试且不称为 exhausted。
+Smoke/formal 这些参数完全一致，manifest gate 保持仅允许原有规模差异。
+
+实现仅使用公共 rollout_func，最终仍按输入顺序每行返回一条 prompt/completion/mask/reward，
+不更换任务、不跨进程拼组、不补新的 dataset 行、不改 Trainer 或 loss。
+依据固定版源码的 `_generate`、`_generate_and_score_completions` 和 RepeatSampler，
+额外 reward 字段绑定原 inputs，后续按 G reshape 计算优势。因此保留原任务和基数；
+这不是论文中筛选有效 prompt 并不断补充新 prompt 直到填满批次的完整 Dynamic Sampling。
+丢弃样本在 old logprobs 快照和优化前被移除；返回的原始 token/mask 不变，logprobs=None 和 μ=2 不变。
+近零判定是数值容差，不声称 epsilon 内的差异在数学上严格零优势。
+同正确性但辅助项不同的组仍可能有优势；组内归一化会放大小信号。
+有界重采样也无法保证发现正确解，必须观察成功率、进度、耗尽比例，不能用总奖励宣布修复有效。
+
+Trace 用唯一 batch_id/rollout_id 关联 rl_tool_call、rl_trajectory（candidate）与
+rl_group_attempt（accepted/discarded/exhausted）。只有带 rl_batch_selected 的完成批次中的 accepted 轨迹
+才是返回给 TRL 的样本；中断留下的 candidate 不得算作训练证据。
+这表示进入 Trainer 的候选，不保证未被技术截断 mask，也不等于 optimizer 已完成更新。
+Smoke gate 仅使用这些采用轨迹；丢弃、未完成回调的轨迹不能充当证据。
 
 ## 数据隔离
 
@@ -157,25 +220,29 @@ bash scripts/check_rl_environment.sh --model-path "$MODEL_PATH" --sft-adapter "$
 
 # 3. 两步真实 GRPO Smoke；目录必须不存在或为空
 bash scripts/run_agentic_rl_smoke.sh --model-path "$MODEL_PATH" \
-  --sft-adapter "$SFT_ADAPTER" --output-dir outputs/agentic_rl_smoke
-python3 scripts/verify_rl_run.py --run-dir outputs/agentic_rl_smoke --expected-steps 2
+  --sft-adapter "$SFT_ADAPTER" --output-dir outputs/agentic_rl_smoke_reward_v2
+python3 scripts/verify_rl_run.py --run-dir outputs/agentic_rl_smoke_reward_v2 --expected-steps 2
 
 # 4. 正式 RL 从正式 SFT 开始，不能从 Smoke adapter 开始
 bash scripts/run_agentic_rl_train.sh --model-path "$MODEL_PATH" \
-  --sft-adapter "$SFT_ADAPTER" --smoke-run outputs/agentic_rl_smoke \
-  --output-dir outputs/agentic_rl_formal
-python3 scripts/verify_rl_run.py --run-dir outputs/agentic_rl_formal --expected-steps 200
+  --sft-adapter "$SFT_ADAPTER" --smoke-run outputs/agentic_rl_smoke_reward_v2 \
+  --output-dir outputs/agentic_rl_formal_reward_v2
+python3 scripts/verify_rl_run.py --run-dir outputs/agentic_rl_formal_reward_v2 --expected-steps 200
 
 # 5. validation：SFT 与 SFT+DAPO-GRPO，同一任务、预算、seed、贪心解码
 bash scripts/run_agentic_rl_eval.sh --model-path "$MODEL_PATH" --sft-adapter "$SFT_ADAPTER" \
-  --rl-adapter outputs/agentic_rl_formal/final_adapter --split validation \
-  --output-dir eval_results/agentic_rl_validation
+  --rl-adapter outputs/agentic_rl_formal_reward_v2/final_adapter --split validation \
+  --output-dir eval_results/agentic_rl_validation_reward_v2
 
 # 6. 配置及 adapter 冻结后，最终 test；禁止根据这里的结果继续调参
 bash scripts/run_agentic_rl_eval.sh --model-path "$MODEL_PATH" --sft-adapter "$SFT_ADAPTER" \
-  --rl-adapter outputs/agentic_rl_formal/final_adapter --split test \
-  --output-dir eval_results/agentic_rl_final_test
+  --rl-adapter outputs/agentic_rl_formal_reward_v2/final_adapter --split test \
+  --output-dir eval_results/agentic_rl_final_test_reward_v2
 ```
+
+第二轮必须使用上述新目录，保留第一轮全部产物。代码/配置变化使旧 Smoke 证据失效，必须重跑 GPU Smoke；
+仍从第一轮相同正式 SFT Adapter 启动正式 RL，不能从第一轮 RL 或新 Smoke 权重启动。
+validation 用于选择方案，test 仅在方案冻结后运行一次，不根据 test 调参。
 
 第 3 步的证据 gate 要求真实有限 loss、足够训练步、保存 adapter、至少一条合法工具多轮轨迹、
 非零有限 LoRA 梯度、训练参数哈希实际变化和 DAPO 配置证据。`model_audit.json` 记录这些运行时事实。
@@ -189,9 +256,9 @@ bash scripts/run_agentic_rl_eval.sh --model-path "$MODEL_PATH" --sft-adapter "$S
 中断后，从已实际存在的完整 checkpoint 恢复，例如：
 
 ```bash
-bash scripts/resume_agentic_rl.sh outputs/agentic_rl_formal/checkpoint-25 \
+bash scripts/resume_agentic_rl.sh outputs/agentic_rl_formal_reward_v2/checkpoint-25 \
   --model-path "$MODEL_PATH" --sft-adapter "$SFT_ADAPTER" \
-  --output-dir outputs/agentic_rl_formal --config configs/agentic_rl_train.yaml
+  --output-dir outputs/agentic_rl_formal_reward_v2 --config configs/agentic_rl_train.yaml
 ```
 
 Smoke 恢复须显式使用 `--config configs/agentic_rl_smoke.yaml`。
@@ -202,14 +269,31 @@ manifest 记录 Git commit 及实际源码 SHA256（包括未提交文件），�
 
 每个 run 有 `rl_manifest.json`、`rollouts.jsonl`、`training_log.jsonl`、Trainer checkpoints、`final_adapter/`。
 统一评测逐模型顺序加载，输出各自 Trace 和 `metrics.json`：任务成功率、pytest testcase 通过率、工具合法率、
-平均轮数、平均模型 Token、技术截断率、所有奖励分量、总奖励、失败类型。无模型时不产生指标文件。
+平均轮数、平均模型 Token、技术截断率、所有奖励分量、总奖励、失败类型。
+新增 full_success_rate、partial_test_pass_rate、mean_test_pass_fraction、all_tests_failed_rate、
+failed_finish_rate、max_turns_rate、timeout_rate、protected_integrity_failure_rate、empty_edit_rate。
+empty_edit_rate 表示最终没有有效修改的轨迹比例，empty_edit_attempt_rate 表示出现空编辑尝试的轨迹比例。
+outcome_counts 为互斥的正确性/安全类别（含 unverified、all_tests_passed_incomplete），
+termination_counts 单独统计终止原因，outcome_termination_counts 提供二者交叉计数；
+因此部分通过后 finish 和全部失败后 finish 可分别审计。
+failure_types 将 failed_finish、max_turns、timeout、protected_integrity_failure 明确分开。
+mean_test_pass_fraction 是可信逐任务比例的宏平均；原 test_pass_rate 保留原始总 passed/总 total 的微平均。
+
+训练在 training_log.jsonl 的 rl_sampling_metrics 事件中逐已采用批次记录以上指标，以及
+zero_variance_group_rate（首轮零方差组/输入组）、accepted_zero_variance_group_rate（最终零方差组/输入组）、
+dynamic_sampling_retry_count（本批额外整组尝试数）、dynamic_sampling_exhausted_rate 和 exhausted_count。
+每行包含 step、batch_id、tasks 和 group_count；跨批轨迹率按 tasks 加权，组率按 group_count 加权，retry_count 求和。
+这些日志按生成批次计一次，不按 μ=2 重复计数；原 trainer_log 和模型更新审计继续保留。
+无模型时不产生评测指标文件。
 Mock 只存在于 CPU 测试，不进入正式 CLI。
 
 ## CPU 验收与待云端确认
 
 `bash scripts/final_rl_preflight.sh` 先真实运行隔离 pytest 正/负控制，再执行原 SFT 只读严格数据检查、全部 CPU 测试、
 Python 编译、Shell 语法及所有 tracked/untracked diff 空白检查。pytest 缺失时必须先在自己的 Python 环境安装依赖。
-本次使用 `/tmp` 虚拟环境中的 pytest 8.4.2；没有安装 Torch/TRL 或下载模型。
+本轮使用 `/tmp/agentic-rl-v2-venv`，Python 3.12.3、pytest 8.4.2、CPU-only torch 2.6.0+cpu、
+transformers 5.5.0（原有 Tensor/BatchEncoding 回归测试需要真实依赖），未安装 TRL、未下载模型。
+全部 114 项测试（原 95 项 + 新增 19 项）通过，完整 CPU 预检通过。命令和初期依赖缺失记录见 Review。
 当前宿主工具环境的 bubblewrap 探针报告 `NETLINK_ROUTE ... Operation not permitted`，
 因此真实正/负控制和 Canary 使用轻量隔离后端通过。不能把此结果写成 bubblewrap 强隔离通过。
 

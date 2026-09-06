@@ -1,5 +1,6 @@
 from dataclasses import dataclass, fields
 from pathlib import Path
+import math
 import yaml
 
 
@@ -27,12 +28,21 @@ class RLConfig:
     save_steps: int = 25
     seed: int = 42
     temperature: float = 1.0
+    dynamic_sampling_enabled: bool = True
+    dynamic_sampling_max_retries: int = 3
+    zero_variance_epsilon: float = 1e-6
 
     def validate(self):
         for k, v in {"loss_type": "dapo", "epsilon": 0.2, "epsilon_high": 0.28, "mask_truncated_completions": True,
                      "num_iterations": 2, "beta": 0.0, "bf16": True, "gradient_checkpointing": True}.items():
             if getattr(self, k) != v:
                 raise ValueError(f"{k} must be {v}")
+        if type(self.dynamic_sampling_enabled) is not bool:
+            raise ValueError("dynamic_sampling_enabled must be boolean")
+        if type(self.dynamic_sampling_max_retries) is not int or not 0 <= self.dynamic_sampling_max_retries <= 16:
+            raise ValueError("dynamic_sampling_max_retries must be an integer in [0, 16]")
+        if type(self.zero_variance_epsilon) not in (int, float) or not math.isfinite(self.zero_variance_epsilon) or not 0 <= self.zero_variance_epsilon <= 1e-4:
+            raise ValueError("zero_variance_epsilon must be finite in [0, 1e-4]")
         if self.num_generations not in (2, 4):
             raise ValueError("num_generations must be 2 or 4")
         for k in ("max_turns", "max_model_tokens", "max_action_tokens", "max_context_tokens", "tool_timeout", "output_limit", "max_steps", "save_steps"):

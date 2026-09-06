@@ -15,3 +15,6 @@ max_action_tokens: 512
 max_context_tokens: 8192
 safe_length: 1536
 length_cap: 1.0
+dynamic_sampling_enabled: true
+dynamic_sampling_max_retries: 3
+zero_variance_epsilon: 1.0e-6

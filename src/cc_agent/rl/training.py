@@ -2,6 +2,9 @@
 import importlib.metadata
 import inspect
 import json
+import math
+import struct
+import uuid
 from pathlib import Path
 
 from cc_agent.rl.rollout import Generation, rollout, task_prompt
@@ -51,7 +54,8 @@ class ModelPolicy:
 class RolloutBridge:
     def __init__(self, tasks, tokenizer, config, trace_path, *, verifier=None, policy_factory=None):
         self.tasks = {t.task_id: t for t in tasks}
-        self.tokenizer, self.config, self.trace_path = tokenizer, config, trace_path
+        self.tokenizer, self.config, self.trace_path = tokenizer, config.validate(), trace_path
+        self.last_statistics = {}
         self.verifier, self.policy_factory = verifier, policy_factory
 
     def __call__(self, prompts, trainer):
@@ -60,20 +64,71 @@ class RolloutBridge:
         g = self.config.num_generations
         if not task_ids or len(task_ids) % g or any(len(set(task_ids[i:i+g])) != 1 for i in range(0, len(task_ids), g)):
             raise RuntimeError("Unexpected TRL repeated prompt ordering; single GPU contract violated")
+        if getattr(trainer.accelerator, "num_processes", 1) != 1:
+            raise RuntimeError("Dynamic sampling requires a single process/GPU")
+        if any(p != prompts[i] for i in range(0, len(prompts), g) for p in prompts[i:i+g]):
+            raise RuntimeError("Group prompts differ despite matching task IDs")
         model = trainer.accelerator.unwrap_model(trainer.model)
         was_training = model.training
         model.eval()
         results = []
+        batch_id = uuid.uuid4().hex  # Also unique across resume/aborted calls.
+        initial_zero = final_zero = exhausted = retries = 0
+        retry_limit = self.config.dynamic_sampling_max_retries if self.config.dynamic_sampling_enabled else 0
         try:
-            for task_id in task_ids:
-                policy = self.policy_factory() if self.policy_factory else ModelPolicy(model, self.tokenizer)
-                results.append(rollout(self.tasks[task_id], policy, self.tokenizer, self.config,
-                                       verifier=self.verifier, trace_path=self.trace_path))
+            for start in range(0, len(task_ids), g):
+                task_id = task_ids[start]
+                for attempt in range(retry_limit + 1):
+                    candidates, rollout_ids = [], []
+                    for slot in range(g):
+                        rollout_id = f"{batch_id}:{start // g}:{attempt}:{slot}"
+                        rollout_ids.append(rollout_id)
+                        policy = self.policy_factory() if self.policy_factory else ModelPolicy(model, self.tokenizer)
+                        candidates.append(rollout(self.tasks[task_id], policy, self.tokenizer, self.config,
+                            verifier=self.verifier, trace_path=self.trace_path,
+                            trace_context={"batch_id": batch_id, "rollout_id": rollout_id,
+                                           "group_index": start // g, "attempt": attempt,
+                                           "selection": "candidate"}))
+                    rewards = [r.total for _, r in candidates]
+                    if any(not math.isfinite(r) for r in rewards):
+                        raise ValueError("Non-finite rollout reward")
+                    # TRL stores reward function output in float32. Detect equality
+                    # at that precision too, without importing torch on CPU tests.
+                    rounded = [struct.unpack("f", struct.pack("f", r))[0] for r in rewards]
+                    zero = max(rounded) - min(rounded) <= self.config.zero_variance_epsilon
+                    if attempt == 0:
+                        initial_zero += zero
+                    accepted = not zero or attempt == retry_limit
+                    is_exhausted = accepted and zero and self.config.dynamic_sampling_enabled
+                    append_trace(self.trace_path, "rl_group_attempt", {
+                        "batch_id": batch_id, "group_index": start // g, "task_id": task_id,
+                        "attempt": attempt, "rollout_ids": rollout_ids, "rewards": rewards,
+                        "zero_variance": zero, "exhausted": is_exhausted,
+                        "selection": "accepted" if accepted else "discarded"})
+                    if accepted:
+                        results.extend(candidates)
+                        final_zero += zero
+                        exhausted += is_exhausted
+                        break
+                    retries += 1
         finally:
             model.train(was_training)
+        from cc_agent.rl.evaluation import metrics
+        groups = len(task_ids) // g
+        self.last_statistics = {
+            **metrics(results), "batch_id": batch_id, "group_count": groups,
+            "zero_variance_group_rate": initial_zero / groups,
+            "accepted_zero_variance_group_rate": final_zero / groups,
+            "dynamic_sampling_retry_count": retries,
+            "dynamic_sampling_exhausted_rate": exhausted / groups,
+            "dynamic_sampling_exhausted_count": exhausted,
+            "dynamic_sampling_enabled": self.config.dynamic_sampling_enabled,
+        }
+        append_trace(self.trace_path, "rl_batch_selected", self.last_statistics)
+        append_trace(Path(self.trace_path).parent / "training_log.jsonl", "rl_sampling_metrics", {
+            "step": getattr(getattr(trainer, "state", None), "global_step", None),
+            **self.last_statistics})
         rewards = [r.total for _, r in results]
-        zero = sum(max(rewards[i:i+g]) - min(rewards[i:i+g]) <= 1e-12 for i in range(0, len(rewards), g))
-        append_trace(self.trace_path, "rl_group_statistics", {"zero_variance_ratio": zero / (len(rewards) / g)})
         return {"prompt_ids": [t.prompt_ids for t, _ in results],
                 "completion_ids": [t.completion_ids for t, _ in results],
                 "env_mask": [t.loss_mask for t, _ in results],
